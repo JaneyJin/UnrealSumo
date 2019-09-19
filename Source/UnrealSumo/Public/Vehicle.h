@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
+#include "FrameRateSyn.h"
 #include "VehicleInformation.h"
 #include "GameFramework/Pawn.h"
 #include "Vehicle.generated.h"
@@ -36,7 +36,7 @@ public:
 	 * @param
 	 * @return
 	 */
-	bool InitializeVehicle(FString VehicleIdToSet, double VehicleSpeed, FVector VehiclePosition, FColor VehicleColor, Client* ClientToSet, float UpdateDeltaT, float NextTimeToUpdate);
+	bool InitializeVehicle(FVehicleInformation VehicleToSet, Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate);
 
 protected:
 	// Called when the game starts or when spawned

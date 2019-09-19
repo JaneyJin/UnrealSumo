@@ -37,14 +37,14 @@ void UVehiclePoisitonUpdateComponent::TickComponent(float DeltaTime, ELevelTick 
 }
 
 
-bool UVehiclePoisitonUpdateComponent::SetVehicleIdAndClient(FString VehicleIdToSet, Client* ClientToSet, float UpdateDeltaT, float NextTimeToUpdate) {
-	if (VehicleIdToSet.IsEmpty()) {
+bool UVehiclePoisitonUpdateComponent::SetVehicleIdAndClient(FVehicleInformation VehicleToSet, Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate) {
+	if ((VehicleToSet.VehicleId).IsEmpty()) {
 		return false;
 	}
 
-	this->VehicleId = std::string(TCHAR_TO_UTF8(*VehicleIdToSet));
+	this->VehicleId = std::string(TCHAR_TO_UTF8(*VehicleToSet.VehicleId));
 	this->client = ClientToSet;
-	this->UpdateDeltaT = UpdateDeltaT;
-	this->NextTimeToUpdate = NextTimeToUpdate;
+	this->UnrealFRS.UpdateDeltaT = SUMOToUnrealFrameRate.UpdateDeltaT;
+	this->UnrealFRS.NextTimeToUpdate = SUMOToUnrealFrameRate.NextTimeToUpdate;
 	return true;
 }

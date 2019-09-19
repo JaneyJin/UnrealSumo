@@ -8,6 +8,7 @@
 #include "CoreMinimal.h"
 #include "Client.h" // TraCI object class
 #include "VehicleInformation.h"
+#include "FrameRateSyn.h"
 #include "GameFramework/DefaultPawn.h"
 #include "SumoDefaultPawn.generated.h" // Need include at last line
 
@@ -34,20 +35,18 @@ private:
 
 
 	/// Variables modified in MatchFrameRatePerSecond()
-	// Update from SUMO server based on machine time
+	FrameRateSyn SUMOToUnrealFrameRate;
+	// SUMO server FPS
 	double SUMODeltaT = 0;
-	// Unreal FPS and tick counter
-	int32 TickCount = 0;
-	int32 FPS = 0;
-	// Record update deltaT setup. 
+	// Record update SUMODeltaT setup in Unreal. 
 	// If fail to setup SUMO FPS in Unreal, return false. Or SUMO FPS is lower than Unreal FPS, return false.
 	bool SetUpdateDeltaTFlag = false;
 
-
+	// TODO: DELETE IT
 	///Variables modified in UpdateSUMOByMachineTime()
 	// Unreal calculate when to Update form SUMO
-	float NextTimeToUpdate = 0;
-	float UpdateDeltaT = 0;
+	// float NextTimeToUpdate = 0;
+	// float UpdateDeltaT = 0;
 
 
 	/// Variables modified in Tick()

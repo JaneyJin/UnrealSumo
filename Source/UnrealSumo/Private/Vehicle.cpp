@@ -37,10 +37,14 @@ void AVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
-bool AVehicle::InitializeVehicle(FString VehicleIdToSet, double VehicleSpeed, FVector VehiclePosition, FColor VehicleColor, Client* ClientToSet, float UpdateDeltaT, float NextTimeToUpdate) {
+bool AVehicle::InitializeVehicle(FVehicleInformation VehicleToSet, Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate) {
 	// UE_LOG(LogTemp, Warning, TEXT("ID: %s,  Speed: %f,  Position: %s, Color: %s"), *VehicleIdToSet, VehicleSpeed, *VehiclePosition.ToString(), *VehicleColor.ToString());
-	UnrealVehicleInformation.VehicleId = VehicleIdToSet;
-	if (VehiclePoisitonUpdateComponent->SetVehicleIdAndClient(VehicleIdToSet, ClientToSet, UpdateDeltaT, NextTimeToUpdate)) {
+	UnrealVehicleInformation.VehicleId = VehicleToSet.VehicleId;
+
+	// TODO: Think whether to keep it
+	UnrealVehicleInformation.VehicleColor = VehicleToSet.VehicleColor;
+
+	if (VehiclePoisitonUpdateComponent->SetVehicleIdAndClient(VehicleToSet, ClientToSet, SUMOToUnrealFrameRate)) {
 
 		return true;
 	}

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include <string>
+#include "FrameRateSyn.h"
 #include "VehicleInformation.h"
 #include "Components/ActorComponent.h"
 #include "VehiclePoisitonUpdateComponent.generated.h"
@@ -28,7 +29,7 @@ public:
 	 * @param
 	 * @return
 	 */
-	bool SetVehicleIdAndClient(FString VehicleIdToSet, Client* ClientToSet, float UpdateDeltaT, float NextTimeToUpdate);
+	bool SetVehicleIdAndClient(FVehicleInformation VehicleToSet, Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate);
 
 
 protected:
@@ -44,9 +45,7 @@ private:
 	// TODO
 	Client* client;
 
-	// TODO
-	float UpdateDeltaT = 0;
-	float NextTimeToUpdate = 0;
+	FrameRateSyn UnrealFRS;
 
 	// TODO
 	std::string VehicleId = "";

@@ -56,11 +56,11 @@ void ASumoDefaultPawn::Tick(float DeltaTime)
 
 
 	// Fix Tick() rate to update vehicle from SUMO
-	if (TickCount < FPS) {
-		TickCount += 1;
+	if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.FPS) {
+		SUMOToUnrealFrameRate.TickCount += 1;
 	}
 	else {
-		TickCount = 1;
+		SUMOToUnrealFrameRate.TickCount = 1;
 	}
 
 	if (SocketIsNotClosed) {
@@ -83,9 +83,9 @@ void ASumoDefaultPawn::MatchFrameRatePerSecond() {
 	auto UEDeltaT = FApp::GetDeltaTime();
 
 	// GetFPS and set TickCounter
-	FPS = FMath::RoundHalfFromZero(1.0f / UEDeltaT);
+	SUMOToUnrealFrameRate.FPS = FMath::RoundHalfFromZero(1.0f / UEDeltaT);
 
-	UE_LOG(LogTemp, Warning, TEXT("SUMO DeltaT is %f. UE DeltaT is %f.FPS is %d"), SUMODeltaT, UEDeltaT, FPS)
+	UE_LOG(LogTemp, Warning, TEXT("SUMO DeltaT is %f. UE DeltaT is %f.FPS is %d"), SUMODeltaT, UEDeltaT, SUMOToUnrealFrameRate.FPS)
 
 		if (SUMODeltaT > 0) {
 
@@ -93,7 +93,7 @@ void ASumoDefaultPawn::MatchFrameRatePerSecond() {
 				UE_LOG(LogTemp, Error, TEXT("Unreal Engine frame rate is lower than SUMO. Cannot change it within code. Please change in setting."));
 			}
 			else {
-				NextTimeToUpdate = UpdateDeltaT = SUMODeltaT;
+				SUMOToUnrealFrameRate.NextTimeToUpdate = SUMOToUnrealFrameRate.UpdateDeltaT = SUMODeltaT;
 				SetUpdateDeltaTFlag = true;
 			}
 
@@ -116,16 +116,16 @@ void ASumoDefaultPawn::MatchFrameRatePerSecond() {
 			UE_LOG(LogTemp, Warning, TEXT("SUMO DeltaT is negative or zero. Fail to set frame rate match."))
 		}
 
-	UE_LOG(LogTemp, Warning, TEXT("Update at %f per second. Next update at %f"), UpdateDeltaT, NextTimeToUpdate)
+	UE_LOG(LogTemp, Warning, TEXT("Update at %f per second. Next update at %f"), SUMOToUnrealFrameRate.UpdateDeltaT, SUMOToUnrealFrameRate.NextTimeToUpdate)
 }
 
 void ASumoDefaultPawn::UpdateSUMOByTickCount() {
-	if (TickCount < FPS) {
-		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), TickCount)
+	if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.FPS) {
+		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), SUMOToUnrealFrameRate.TickCount)
 	}
-	else if (TickCount == FPS) {
+	else if (SUMOToUnrealFrameRate.TickCount == SUMOToUnrealFrameRate.FPS) {
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d. Update from SUMo."), TickCount)
+		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.TickCount)
 			UpdateFromSUMO();
 	}
 	else {
@@ -137,8 +137,8 @@ void ASumoDefaultPawn::UpdateSUMOByTickCount() {
 void ASumoDefaultPawn::UpdateSUMOByMachineTime() {
 	TimeInWorld = GetWorld()->GetTimeSeconds();
 
-	if (NextTimeToUpdate - TimeInWorld < 0.0001) {
-		NextTimeToUpdate += UpdateDeltaT;
+	if (SUMOToUnrealFrameRate.NextTimeToUpdate - TimeInWorld < 0.0001) {
+		SUMOToUnrealFrameRate.NextTimeToUpdate += SUMOToUnrealFrameRate.UpdateDeltaT;
 		UpdateFromSUMO();
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
 	}
@@ -282,7 +282,7 @@ bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) 
 
 			selectedClass = *VehicleBPList[FMath::RandRange(0, VehicleBPList.Num() - 1)];
 			RandomVehicle = Cast<AVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &Rotator));
-			if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation.VehicleId, SUMOVehicleInformation.VehicleSpeed, SUMOVehicleInformation.VehiclePosition, SUMOVehicleInformation.VehicleColor, &client, UpdateDeltaT, NextTimeToUpdate)) {
+			if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
 				// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
 				return true;
 			}
