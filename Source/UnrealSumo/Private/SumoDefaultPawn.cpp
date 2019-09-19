@@ -5,7 +5,7 @@
 #include "Misc/App.h"
 #include "GameFramework/Actor.h"
 #include "Client.h"
-
+#include "Vehicle.h"
 
 ASumoDefaultPawn::ASumoDefaultPawn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -260,5 +260,41 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 //}
 
 bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) {
+	FRotator Rotator;
+	// FVector spawnLocation = vehicle.vehiclePosition;
+	// Spawn a vehicle at its start location from SUMO
+	UWorld* world = GetWorld();
+	if (world) {
 
+
+		SpawnPoint = SUMOVehicleInformation.VehiclePosition;
+
+		// TODO modify the FRotator
+		if (SpawnPoint.X > 0) {
+			Rotator = FRotator(0, 90, 0);
+		}
+		else {
+			Rotator = FRotator(0, -90, 0);
+		}
+
+
+		if (VehicleBPList.Num() > 0) {
+
+			selectedClass = *VehicleBPList[FMath::RandRange(0, VehicleBPList.Num() - 1)];
+			RandomVehicle = Cast<AVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &Rotator));
+			if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation.VehicleId, SUMOVehicleInformation.VehicleSpeed, SUMOVehicleInformation.VehiclePosition, SUMOVehicleInformation.VehicleColor, &client, UpdateDeltaT, NextTimeToUpdate)) {
+				// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
+				return true;
+			}
+			
+		}
+		else {
+			UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehcile because none blueprint class is selected"))
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("Can't get world."))
+	}
+
+	return false;
 }

@@ -14,5 +14,5 @@ public:
 
 
 	/*UPROPERTY(BlueprintReadWrite, Category = "Student")
-	int32 Age;*/
+	int32 test;*/
 };

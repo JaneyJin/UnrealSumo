@@ -13,7 +13,7 @@
 
 // Predefine class
 class Client;
-
+class AVehicle;
 
 UCLASS()
 class UNREALSUMO_API ASumoDefaultPawn : public ADefaultPawn
@@ -73,14 +73,14 @@ private:
 
 	/// Variables modified in SpawnRandomVehicle()
 	FVector SpawnPoint;
-	FRotator Rotator;
+	// FRotator Rotator;
 	// Spawn random vehicle from a list of BP class
 	UClass* selectedClass;
 	/// UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "SUMo Setup") 
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
 		TArray<TSubclassOf<APawn>> VehicleBPList;
 	
-	
+	AVehicle* RandomVehicle = nullptr;
 
 
 	/**
