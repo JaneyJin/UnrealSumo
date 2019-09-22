@@ -8,8 +8,9 @@ struct FrameRateSyn
 	GENERATED_BODY()
 
 public:
-	/// Variables modified in MatchFrameRatePerSecond()
 	
+
+	/// Variables modified in MatchFrameRatePerSecond()
 	// Unreal FPS and tick counter
 	int32 TickCount = 0;
 	int32 FPS = 0;

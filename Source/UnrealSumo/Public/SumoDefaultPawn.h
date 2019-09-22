@@ -13,7 +13,7 @@
 #include "SumoDefaultPawn.generated.h" // Need include at last line
 
 // Predefine class
-class Client;
+
 class AVehicle;
 
 UCLASS()
@@ -59,7 +59,8 @@ private:
 	int32 SUMOStep = 0;
 	double SUMOTime = 0;
 	int DepartedNumber = 0;
-	int ArrivedNumber = 0;
+	std::vector<std::string> DepartedList;
+
 	// Information retrieval from SUMO server
 	FVehicleInformation SUMOVehicleInformation;
 	// Turn SUMO meters into 
