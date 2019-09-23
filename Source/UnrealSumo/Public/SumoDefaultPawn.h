@@ -21,7 +21,7 @@ class UNREALSUMO_API ASumoDefaultPawn : public ADefaultPawn
 {
 	GENERATED_BODY()
 
-private:
+public:
 	/// Variables modified in BeginPlay()
 	// Port number for connection. If the port number is empty, the UE will set to the DefaultPortNumber
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
@@ -33,9 +33,9 @@ private:
 	// If Unreal fail to connect to SUMO server or SUMO has all of vehicles finish the trip, UE will not get crash 
 	bool SocketIsNotClosed = false;
 
-
 	/// Variables modified in MatchFrameRatePerSecond()
 	FrameRateSyn SUMOToUnrealFrameRate;
+
 	// SUMO server FPS
 	double SUMODeltaT = 0;
 	// Record update SUMODeltaT setup in Unreal. 
@@ -60,6 +60,7 @@ private:
 	double SUMOTime = 0;
 	int DepartedNumber = 0;
 	std::vector<std::string> DepartedList;
+
 
 	// Information retrieval from SUMO server
 	FVehicleInformation SUMOVehicleInformation;

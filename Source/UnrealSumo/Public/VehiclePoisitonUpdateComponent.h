@@ -18,6 +18,12 @@ class UNREALSUMO_API UVehiclePoisitonUpdateComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
+
+	// Instantiate VehicleInformation Structure class to store Vehicle information get from SUMO and update these data in Unreal
+	FVehicleInformation UnrealVehicleInformation;
+
+	FrameRateSyn UnrealFRS;
+
 	// Sets default values for this component's properties
 	UVehiclePoisitonUpdateComponent();
 
@@ -60,7 +66,7 @@ public:
 	 */
 	bool DestroyVehicle();
 
-protected:
+
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
@@ -68,13 +74,12 @@ private:
 	// BeginPlay()
 	AActor* Owner = nullptr;
 	
-	// Instantiate VehicleInformation Structure class to store Vehicle information get from SUMO and update these data in Unreal
-	FVehicleInformation UnrealVehicleInformation;
+	
 
 	//// SetVehicleIdAndClient()
 	// TODO
 	Client* client;
-	FrameRateSyn UnrealFRS;
+	// FrameRateSyn UnrealFRS;
 	// TODO
 	std::string VehicleId = "";
 

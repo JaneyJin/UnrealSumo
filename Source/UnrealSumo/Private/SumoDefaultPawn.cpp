@@ -140,66 +140,66 @@ void ASumoDefaultPawn::UpdateSUMOByMachineTime() {
 	if (SUMOToUnrealFrameRate.NextTimeToUpdate - TimeInWorld < 0.0001) {
 		SUMOToUnrealFrameRate.NextTimeToUpdate += SUMOToUnrealFrameRate.UpdateDeltaT;
 		UpdateFromSUMO();
-		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
+		 UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
 	}
-	// else {
-		// UE_LOG(LogTemp, Display, TEXT("%f GameMode Tick()"), TimeInWorld)
-	// }
+	 else {
+		 UE_LOG(LogTemp, Display, TEXT("%f GameMode Tick()"), TimeInWorld)
+	 }
 }
 
 void ASumoDefaultPawn::UpdateFromSUMO() {
-		if (client.simulation.getMinExpectedNumber() > 0) {
-			client.simulationStep();
-			// SUMO time increment 
-			SUMOStep++;
-			SUMOTime += SUMODeltaT;
-			// UE_LOG(LogTemp, Warning, TEXT("MachineTime;;SUMOTime;%f;SUMOStep;%d"),  SUMOTime, SUMOStep)
-			
-			// TODO: Think how to destroy veicle from here
-			// ArrivedNumber = client.simulation.getArrivedNumber();
-			//if (ArrivedNumber != 0) {
-			//	std::vector<std::string> arrivedList = client.simulation.getArrivedIDList();
-			//	for (int i = 0; i < ArrivedNumber; i++) {
-			//		// Remove from the simulatedVehicle
-			//		if (!RemoveVehicleFromList(arrivedList[i].c_str(), VehicleList)) {
-			//			// removeVehicleFlag = true;
-			//			break;
-			//		}
-			//	}
-			//}
+	if (client.simulation.getMinExpectedNumber() > 0) {
+		client.simulationStep();
+		// SUMO time increment 
+		SUMOStep++;
+		SUMOTime += SUMODeltaT;
+		// UE_LOG(LogTemp, Warning, TEXT("MachineTime;;SUMOTime;%f;SUMOStep;%d"),  SUMOTime, SUMOStep)
 
-			DepartedNumber = client.simulation.getDepartedNumber();
-			if (DepartedNumber != 0) {
+		// TODO: Think how to destroy veicle from here
+		// ArrivedNumber = client.simulation.getArrivedNumber();
+		//if (ArrivedNumber != 0) {
+		//	std::vector<std::string> arrivedList = client.simulation.getArrivedIDList();
+		//	for (int i = 0; i < ArrivedNumber; i++) {
+		//		// Remove from the simulatedVehicle
+		//		if (!RemoveVehicleFromList(arrivedList[i].c_str(), VehicleList)) {
+		//			// removeVehicleFlag = true;
+		//			break;
+		//		}
+		//	}
+		//}
 
-				DepartedList = client.simulation.getDepartedIDList();
+		DepartedNumber = client.simulation.getDepartedNumber();
+		if (DepartedNumber != 0) {
 
-				// for (unsigned int i = 0; i < departedList.size(); i++) {
-				for (int i = 0; i < DepartedNumber; i++) {
+			DepartedList = client.simulation.getDepartedIDList();
 
-					/// Retrieve vehicle id, speed, positon and color from SUMO 
-					// Covert std::string into FString
-					DepartedVehicleId = DepartedList[i];
-					SUMOVehicleInformation.VehicleId = DepartedVehicleId.c_str();
+			// for (unsigned int i = 0; i < departedList.size(); i++) {
+			for (int i = 0; i < DepartedNumber; i++) {
 
-					// Assign speed
-					SUMOVehicleInformation.VehicleSpeed = client.vehicle.getSpeed(DepartedVehicleId);
+				/// Retrieve vehicle id, speed, positon and color from SUMO 
+				// Covert std::string into FString
+				DepartedVehicleId = DepartedList[i];
+				SUMOVehicleInformation.VehicleId = DepartedVehicleId.c_str();
 
-					// Convert libsumo::TraCIPosition into FVector 
-					DepartedVehiclePos = client.vehicle.getPosition(DepartedVehicleId);
-					SUMOVehicleInformation.VehiclePosition.X = DepartedVehiclePos.x * MeterUnitConversion;
-					SUMOVehicleInformation.VehiclePosition.Y = DepartedVehiclePos.y * MeterUnitConversion;
-					SUMOVehicleInformation.VehiclePosition.Z = DepartedVehiclePos.z * MeterUnitConversion;
+				// Assign speed
+				SUMOVehicleInformation.VehicleSpeed = client.vehicle.getSpeed(DepartedVehicleId);
 
-					// Convert libsumo:: TraCIColor into FColor
-					DepartedVehicleColor = client.vehicle.getColor(DepartedVehicleId);
-					SUMOVehicleInformation.VehicleColor.R = DepartedVehicleColor.r;
-					SUMOVehicleInformation.VehicleColor.G = DepartedVehicleColor.g;
-					SUMOVehicleInformation.VehicleColor.B = DepartedVehicleColor.b;
-					SUMOVehicleInformation.VehicleColor.A = DepartedVehicleColor.a;
+				// Convert libsumo::TraCIPosition into FVector 
+				DepartedVehiclePos = client.vehicle.getPosition(DepartedVehicleId);
+				SUMOVehicleInformation.VehiclePosition.X = DepartedVehiclePos.x * MeterUnitConversion;
+				SUMOVehicleInformation.VehiclePosition.Y = DepartedVehiclePos.y * MeterUnitConversion;
+				SUMOVehicleInformation.VehiclePosition.Z = DepartedVehiclePos.z * MeterUnitConversion;
 
-					if (SpawnRandomVehicle(SUMOVehicleInformation)) {
-						UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle %s"), *SUMOVehicleInformation.VehicleId)
-					
+				// Convert libsumo:: TraCIColor into FColor
+				DepartedVehicleColor = client.vehicle.getColor(DepartedVehicleId);
+				SUMOVehicleInformation.VehicleColor.R = DepartedVehicleColor.r;
+				SUMOVehicleInformation.VehicleColor.G = DepartedVehicleColor.g;
+				SUMOVehicleInformation.VehicleColor.B = DepartedVehicleColor.b;
+				SUMOVehicleInformation.VehicleColor.A = DepartedVehicleColor.a;
+
+				if (SpawnRandomVehicle(SUMOVehicleInformation)) {
+					UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle %s"), *SUMOVehicleInformation.VehicleId)
+
 						if (GEngine)
 						{
 							const int32 AlwaysAddKey = -1; // Add a new one instead of overwrite last message
@@ -207,9 +207,6 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 							GEngine->AddOnScreenDebugMessage(AlwaysAddKey, 1.0f, FColor::Red, ErrorMessage + SUMOVehicleInformation.VehicleId + "!");
 
 						}
-					
-					
-					}
 
 				}
 
@@ -217,21 +214,21 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 
 
 
-
-		}
-		else {
-			// Close socket 
-			client.close();
-			SocketIsNotClosed = false;
-
-
-			// Exit game in UE
-			//FGenericPlatformMisc::RequestExit(false);
-			//GetWorld()->Exec(GetWorld(), TEXT("Exit"));
 		}
 
+
+	}
+	else {
+		// Close socket 
+		client.close();
+		SocketIsNotClosed = false;
+
+
+		// Exit game in UE
+		//FGenericPlatformMisc::RequestExit(false);
+		//GetWorld()->Exec(GetWorld(), TEXT("Exit"));
+	}
 }
-
 
 
 //bool ASumoDefaultPawn::RemoveVehicleFromList(FString VehicleId, TMap<FString, SUMOVehicleInformation> &VehicleList) {
@@ -260,7 +257,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 //	return true;
 //}
 
-bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) {
+bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle){
 	FRotator Rotator;
 	// FVector spawnLocation = vehicle.vehiclePosition;
 	// Spawn a vehicle at its start location from SUMO
@@ -271,19 +268,20 @@ bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) 
 		SpawnPoint = SUMOVehicleInformation.VehiclePosition;
 
 		// TODO: modify the FRotator
-		if (SpawnPoint.X > 0) {
+		/*if (SpawnPoint.X > 0) {
 			Rotator = FRotator(0, 90, 0);
 		}
 		else {
 			Rotator = FRotator(0, -90, 0);
-		}
+		}*/
 
-
+		Rotator = FRotator(0, 0, 0);
 		if (VehicleBPList.Num() > 0) {
 
 			selectedClass = *VehicleBPList[FMath::RandRange(0, VehicleBPList.Num() - 1)];
 			RandomVehicle = Cast<AVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &Rotator));
-			if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
+			// ,  &SUMOVehicleInformation
+			if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation,&client, SUMOToUnrealFrameRate)) {
 				// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
 				return true;
 			}

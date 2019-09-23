@@ -3,6 +3,7 @@
 
 #include "Vehicle.h"
 #include "Client.h"
+#include "VehicleInformation.h"
 #include "VehiclePoisitonUpdateComponent.h"
 
 
@@ -37,17 +38,22 @@ void AVehicle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 }
 
-bool AVehicle::InitializeVehicle(FVehicleInformation VehicleToSet, Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate) {
+//bool AVehicle::InitializeVehicle(FVehicleInformation VehicleToSet, Client* ClientToSet, &FrameRateSyn SUMOToUnrealFrameRate) {
+bool AVehicle::InitializeVehicle(FVehicleInformation VehicleToSet,Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate) {
 	// UE_LOG(LogTemp, Warning, TEXT("ID: %s,  Speed: %f,  Position: %s, Color: %s"), *VehicleIdToSet, VehicleSpeed, *VehiclePosition.ToString(), *VehicleColor.ToString());
-	UnrealVehicleInformation.VehicleId = VehicleToSet.VehicleId;
+	TESTUnrealVehicleInformation = VehicleToSet;
+	
+	UE_LOG(LogTemp, Warning, TEXT("Fail to Set"))
 
+		UE_LOG(LogTemp, Warning, TEXT("Fail to Set"))
 	// TODO: Think whether to keep it
-	UnrealVehicleInformation.VehicleColor = VehicleToSet.VehicleColor;
-
-	if (VehiclePoisitonUpdateComponent->SetVehicleIdAndClient(VehicleToSet, ClientToSet, SUMOToUnrealFrameRate)) {
+	// UnrealVehicleInformation.VehicleColor = VehicleToSet.VehicleColor;
+	 
+	//  FVehicleInformation VehicleToSet;
+	/* if (VehiclePoisitonUpdateComponent->SetVehicleIdAndClient(VehicleToSet, ClientToSet, SUMOToUnrealFrameRate)) {
 
 		return true;
-	}
+	}*/
 	
 	UE_LOG(LogTemp, Warning, TEXT("Fail to Set"))
 	return false;

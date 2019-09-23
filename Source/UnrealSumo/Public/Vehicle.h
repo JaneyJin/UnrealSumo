@@ -21,6 +21,10 @@ class UNREALSUMO_API AVehicle : public APawn
 
 
 public:	
+
+	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
+	FVehicleInformation TESTUnrealVehicleInformation;
+
 	// Sets default values for this pawn's properties
 	AVehicle();
 
@@ -34,16 +38,15 @@ public:
 	/**
 	 * TODO
 	 * @param
-	 * @return
+	 * @return   
 	 */
-	bool InitializeVehicle(FVehicleInformation VehicleToSet, Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate);
+	bool InitializeVehicle(FVehicleInformation VehicleToSet,Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 private:
-	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
-	FVehicleInformation UnrealVehicleInformation;
+	
 
 	// Attach Actor component to the Vehicle blueprint class
 	UVehiclePoisitonUpdateComponent* VehiclePoisitonUpdateComponent = nullptr;

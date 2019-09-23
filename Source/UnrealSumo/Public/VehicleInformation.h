@@ -7,10 +7,10 @@ struct FVehicleInformation
 {
 	GENERATED_BODY()
 public:
-	FString VehicleId; // std::string 
-	FVector VehiclePosition; // libsumo::TraCIPosition  
-	double VehicleSpeed; // double // NOT USE
-	FColor VehicleColor; // libsumo::TraCIColor //NOT USE
+	FString VehicleId = ""; // std::string 
+	FVector VehiclePosition = FVector(0,0,0); // libsumo::TraCIPosition  
+	double VehicleSpeed = 0; // double // NOT USE
+	FColor VehicleColor = FColor(0,0,0,1); // libsumo::TraCIColor //NOT USE
 
 	/*UPROPERTY(BlueprintReadWrite, Category = "Student")
 	int32 test;*/
