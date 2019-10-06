@@ -14,7 +14,7 @@
 
 // Predefine class
 
-class AVehicle;
+class ACustomVehicle;
 
 UCLASS()
 class UNREALSUMO_API ASumoDefaultPawn : public ADefaultPawn
@@ -80,14 +80,14 @@ public:
 	/// UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "SUMo Setup") 
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
 		TArray<TSubclassOf<APawn>> VehicleBPList;
-	
-	AVehicle* RandomVehicle = nullptr;
+
+	ACustomVehicle* RandomVehicle = nullptr;
 
 
 	/**
 	 * Unreal get the frame rate from SUMO and re-align Unreal time to update from SUMO
-	 * @param  
-	 * @return 
+	 * @param
+	 * @return
 	 */
 	void MatchFrameRatePerSecond();
 

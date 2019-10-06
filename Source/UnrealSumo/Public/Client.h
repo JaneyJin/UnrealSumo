@@ -6,7 +6,7 @@
 #include "src/TraCIAPI.h"
 
 /**
- * 
+ *
  */
 class UNREALSUMO_API Client : public TraCIAPI
 {

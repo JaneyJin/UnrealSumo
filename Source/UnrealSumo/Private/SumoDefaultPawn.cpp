@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "SumoDefaultPawn.h" // Must at the line for #include
+#include "SumoDefaultPawn.h"// Must at the line for #include
 #include "Misc/App.h"
 #include "GameFramework/Actor.h"
 #include "Engine.h"
-#include "Vehicle.h"
+#include "CustomVehicle.h"
 
 ASumoDefaultPawn::ASumoDefaultPawn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -21,9 +21,9 @@ void ASumoDefaultPawn::BeginPlay()
 	Super::BeginPlay();
 
 	UE_LOG(LogTemp, Warning, TEXT("SumoDefaultPawn BeginPlay."))
-	
 
-	try {
+
+		try {
 
 		// Validate the port number
 		if ((PortNumber <= 0) || (PortNumber > LargestPortNumber)) {
@@ -55,7 +55,7 @@ void ASumoDefaultPawn::Tick(float DeltaTime)
 	 UE_LOG(LogTemp, Warning, TEXT("Machine Time: %s"), *DateTime.ToString())*/
 
 
-	// Fix Tick() rate to update vehicle from SUMO
+	 // Fix Tick() rate to update vehicle from SUMO
 	if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.FPS) {
 		SUMOToUnrealFrameRate.TickCount++;
 	}
@@ -140,33 +140,21 @@ void ASumoDefaultPawn::UpdateSUMOByMachineTime() {
 	if (SUMOToUnrealFrameRate.NextTimeToUpdate - TimeInWorld < 0.0001) {
 		SUMOToUnrealFrameRate.NextTimeToUpdate += SUMOToUnrealFrameRate.UpdateDeltaT;
 		UpdateFromSUMO();
-		 UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
+		UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
 	}
-	 else {
-		 UE_LOG(LogTemp, Display, TEXT("%f GameMode Tick()"), TimeInWorld)
-	 }
+	else {
+		UE_LOG(LogTemp, Display, TEXT("%f GameMode Tick()"), TimeInWorld)
+	}
 }
 
 void ASumoDefaultPawn::UpdateFromSUMO() {
 	if (client.simulation.getMinExpectedNumber() > 0) {
 		client.simulationStep();
+		
 		// SUMO time increment 
 		SUMOStep++;
 		SUMOTime += SUMODeltaT;
 		// UE_LOG(LogTemp, Warning, TEXT("MachineTime;;SUMOTime;%f;SUMOStep;%d"),  SUMOTime, SUMOStep)
-
-		// TODO: Think how to destroy veicle from here
-		// ArrivedNumber = client.simulation.getArrivedNumber();
-		//if (ArrivedNumber != 0) {
-		//	std::vector<std::string> arrivedList = client.simulation.getArrivedIDList();
-		//	for (int i = 0; i < ArrivedNumber; i++) {
-		//		// Remove from the simulatedVehicle
-		//		if (!RemoveVehicleFromList(arrivedList[i].c_str(), VehicleList)) {
-		//			// removeVehicleFlag = true;
-		//			break;
-		//		}
-		//	}
-		//}
 
 		DepartedNumber = client.simulation.getDepartedNumber();
 		if (DepartedNumber != 0) {
@@ -188,7 +176,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 				DepartedVehiclePos = client.vehicle.getPosition(DepartedVehicleId);
 				SUMOVehicleInformation.VehiclePosition.X = DepartedVehiclePos.x * MeterUnitConversion;
 				SUMOVehicleInformation.VehiclePosition.Y = DepartedVehiclePos.y * MeterUnitConversion;
-				SUMOVehicleInformation.VehiclePosition.Z = DepartedVehiclePos.z * MeterUnitConversion;
+				SUMOVehicleInformation.VehiclePosition.Z = DepartedVehiclePos.z * MeterUnitConversion + 10;
 
 				// Convert libsumo:: TraCIColor into FColor
 				DepartedVehicleColor = client.vehicle.getColor(DepartedVehicleId);
@@ -205,7 +193,6 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 							const int32 AlwaysAddKey = -1; // Add a new one instead of overwrite last message
 							static const FString ErrorMessage(TEXT("Fail to spawn vehicle "));
 							GEngine->AddOnScreenDebugMessage(AlwaysAddKey, 1.0f, FColor::Red, ErrorMessage + SUMOVehicleInformation.VehicleId + "!");
-
 						}
 
 				}
@@ -230,34 +217,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 	}
 }
 
-
-//bool ASumoDefaultPawn::RemoveVehicleFromList(FString VehicleId, TMap<FString, SUMOVehicleInformation> &VehicleList) {
-//	int eraseFlag = -1;
-//	if (VehicleList.Contains(VehicleId)) {
-//		eraseFlag = VehicleList.Remove(VehicleId);
-//		//If erase success, eraseFlag is 1; otherwise, eraseFlag is 0
-//		if (eraseFlag != 1) {
-//			return false;
-//		}
-//		//UE_LOG(LogTemp, Display, TEXT("Step %d: Remove vehicle %s from list."), step, *vehicleId);
-//		UE_LOG(LogTemp, Display, TEXT("Destroy %s"), *VehicleId);
-//
-//
-//		// TODO Find Vehicle that need to be removed here instead of let the component find whether it is need to be removed
-//		if (RandomVehicle) {
-//			RandomVehicle->VehicleToDestroy(VehicleId);
-//		}
-//
-//	}
-//	else {
-//		UE_LOG(LogTemp, Warning, TEXT("Fail to find vehicle %s from list."), *VehicleId);
-//		return false;
-//	}
-//
-//	return true;
-//}
-
-bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle){
+bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) {
 	FRotator Rotator;
 	// FVector spawnLocation = vehicle.vehiclePosition;
 	// Spawn a vehicle at its start location from SUMO
@@ -279,23 +239,25 @@ bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle){
 		if (VehicleBPList.Num() > 0) {
 
 			selectedClass = *VehicleBPList[FMath::RandRange(0, VehicleBPList.Num() - 1)];
-			RandomVehicle = Cast<AVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &Rotator));
-			// ,  &SUMOVehicleInformation
-			if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation,&client, SUMOToUnrealFrameRate)) {
-				// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
-				return true;
+			RandomVehicle = Cast<ACustomVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &Rotator));
+			if (RandomVehicle) {
+				if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
+					// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
+					return true;
+				}
 			}
 			
+
 		}
 		else {
 			UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle because none blueprint class is selected"))
-			if (GEngine)
-			{
-				const int32 AlwaysAddKey = -1; // Add a new one instead of overwrite last message
-				static const FString ErrorMessage(TEXT("Fail to spawn vehicle because none blueprint class is selected"));
-				GEngine->AddOnScreenDebugMessage(AlwaysAddKey, 5.0f, FColor::Red, ErrorMessage);
+				if (GEngine)
+				{
+					const int32 AlwaysAddKey = -1; // Add a new one instead of overwrite last message
+					static const FString ErrorMessage(TEXT("Fail to spawn vehicle because none blueprint class is selected"));
+					GEngine->AddOnScreenDebugMessage(AlwaysAddKey, 5.0f, FColor::Red, ErrorMessage);
 
-			}
+				}
 		}
 	}
 	else {

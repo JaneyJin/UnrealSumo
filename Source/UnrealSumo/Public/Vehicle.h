@@ -11,20 +11,21 @@
 class Client;
 class UVehiclePoisitonUpdateComponent;
 
-
 UCLASS()
 class UNREALSUMO_API AVehicle : public APawn
 {
 	GENERATED_BODY()
 
 
-
+	
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
 
 public:	
-
 	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
-	FVehicleInformation TESTUnrealVehicleInformation;
-
+	FVehicleInformation UnrealVehicleInformation;
+	
 	// Sets default values for this pawn's properties
 	AVehicle();
 
@@ -34,20 +35,12 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-
 	/**
 	 * TODO
 	 * @param
-	 * @return   
+	 * @return
 	 */
-	bool InitializeVehicle(FVehicleInformation VehicleToSet,Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate);
+	bool InitializeVehicle(FVehicleInformation VehicleToSet, Client* ClientToSet, FrameRateSyn SUMOToUnrealFrameRate);
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-private:
-	
 
-	// Attach Actor component to the Vehicle blueprint class
-	UVehiclePoisitonUpdateComponent* VehiclePoisitonUpdateComponent = nullptr;
 };
