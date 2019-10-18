@@ -38,9 +38,7 @@ public:
 
 	// SUMO server FPS
 	double SUMODeltaT = 0;
-	// Record update SUMODeltaT setup in Unreal. 
-	// If fail to setup SUMO FPS in Unreal, return false. Or SUMO FPS is lower than Unreal FPS, return false.
-	bool SetUpdateDeltaTFlag = false;
+	
 
 	// TODO: DELETE IT
 	///Variables modified in UpdateSUMOByMachineTime()
@@ -74,12 +72,12 @@ public:
 
 	/// Variables modified in SpawnRandomVehicle()
 	FVector SpawnPoint;
-	// FRotator Rotator;
+	FRotator SpawnRotator;
 	// Spawn random vehicle from a list of BP class
 	UClass* selectedClass;
 	/// UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "SUMo Setup") 
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
-		TArray<TSubclassOf<APawn>> VehicleBPList;
+		TArray<TSubclassOf<ACustomVehicle>> VehicleBPList;
 
 	ACustomVehicle* RandomVehicle = nullptr;
 

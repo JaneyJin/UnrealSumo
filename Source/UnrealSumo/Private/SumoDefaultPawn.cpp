@@ -67,14 +67,14 @@ void ASumoDefaultPawn::Tick(float DeltaTime)
 		TimeInWorld = GetWorld()->GetTimeSeconds();
 
 		// Not allow UE Tick() slower than SUMo FPS.  
-		if (SetUpdateDeltaTFlag) {
+		if (client.SetUpdateDeltaTFlag) {
 			// UpdateSUMOByTickCount();
 			UpdateSUMOByMachineTime();
 		}
 	}
-	else {
+	/*else {
 		UE_LOG(LogTemp, Warning, TEXT("Tick. Socket Close."))
-	}
+	}*/
 
 }
 
@@ -94,7 +94,7 @@ void ASumoDefaultPawn::MatchFrameRatePerSecond() {
 			}
 			else {
 				SUMOToUnrealFrameRate.NextTimeToUpdate = SUMOToUnrealFrameRate.UpdateDeltaT = SUMODeltaT;
-				SetUpdateDeltaTFlag = true;
+				client.SetUpdateDeltaTFlag = true;
 			}
 
 			/*if (GEngine != nullptr) {
@@ -140,11 +140,11 @@ void ASumoDefaultPawn::UpdateSUMOByMachineTime() {
 	if (SUMOToUnrealFrameRate.NextTimeToUpdate - TimeInWorld < 0.0001) {
 		SUMOToUnrealFrameRate.NextTimeToUpdate += SUMOToUnrealFrameRate.UpdateDeltaT;
 		UpdateFromSUMO();
-		UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
+		UE_LOG(LogTemp, Warning, TEXT("SumoDefaultPawn:: SUMOSTEP: %d ; Update from SUMO: %f . NextTimeToUpdate %f"),SUMOStep, TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
 	}
-	else {
+	/*else {
 		UE_LOG(LogTemp, Display, TEXT("%f GameMode Tick()"), TimeInWorld)
-	}
+	}*/
 }
 
 void ASumoDefaultPawn::UpdateFromSUMO() {
@@ -154,7 +154,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 		// SUMO time increment 
 		SUMOStep++;
 		SUMOTime += SUMODeltaT;
-		// UE_LOG(LogTemp, Warning, TEXT("MachineTime;;SUMOTime;%f;SUMOStep;%d"),  SUMOTime, SUMOStep)
+		//UE_LOG(LogTemp, Warning, TEXT("MachineTime;;SUMOTime;%f;SUMOStep;%d"),  SUMOTime, SUMOStep)
 
 		DepartedNumber = client.simulation.getDepartedNumber();
 		if (DepartedNumber != 0) {
@@ -175,7 +175,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 				// Convert libsumo::TraCIPosition into FVector 
 				DepartedVehiclePos = client.vehicle.getPosition(DepartedVehicleId);
 				SUMOVehicleInformation.VehiclePosition.X = DepartedVehiclePos.x * MeterUnitConversion;
-				SUMOVehicleInformation.VehiclePosition.Y = DepartedVehiclePos.y * MeterUnitConversion;
+				SUMOVehicleInformation.VehiclePosition.Y = DepartedVehiclePos.y * MeterUnitConversion * -1;
 				SUMOVehicleInformation.VehiclePosition.Z = DepartedVehiclePos.z * MeterUnitConversion + 10;
 
 				// Convert libsumo:: TraCIColor into FColor
@@ -185,7 +185,11 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 				SUMOVehicleInformation.VehicleColor.B = DepartedVehicleColor.b;
 				SUMOVehicleInformation.VehicleColor.A = DepartedVehicleColor.a;
 
-				if (SpawnRandomVehicle(SUMOVehicleInformation)) {
+				SUMOVehicleInformation.VehicleAngle.Yaw = client.vehicle.getAngle(DepartedVehicleId);
+				
+				
+
+				if (!SpawnRandomVehicle(SUMOVehicleInformation)) {
 					UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle %s"), *SUMOVehicleInformation.VehicleId)
 
 						if (GEngine)
@@ -218,35 +222,25 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 }
 
 bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) {
-	FRotator Rotator;
-	// FVector spawnLocation = vehicle.vehiclePosition;
+	
+	
 	// Spawn a vehicle at its start location from SUMO
 	UWorld* world = GetWorld();
 	if (world) {
-
-
 		SpawnPoint = SUMOVehicleInformation.VehiclePosition;
-
-		// TODO: modify the FRotator
-		/*if (SpawnPoint.X > 0) {
-			Rotator = FRotator(0, 90, 0);
-		}
-		else {
-			Rotator = FRotator(0, -90, 0);
-		}*/
-
-		Rotator = FRotator(0, 0, 0);
+		SpawnRotator.Yaw = DepartedVehicle.VehicleAngle.Yaw;
+		UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %s"), *SpawnPoint.ToString(), *SpawnRotator.ToString())
 		if (VehicleBPList.Num() > 0) {
 
 			selectedClass = *VehicleBPList[FMath::RandRange(0, VehicleBPList.Num() - 1)];
-			RandomVehicle = Cast<ACustomVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &Rotator));
+			RandomVehicle = Cast<ACustomVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
 			if (RandomVehicle) {
 				if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
 					// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
 					return true;
 				}
 			}
-			
+			return false;
 
 		}
 		else {

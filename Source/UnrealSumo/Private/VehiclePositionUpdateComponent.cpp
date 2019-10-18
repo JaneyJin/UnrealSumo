@@ -29,22 +29,25 @@ void UVehiclePositionUpdateComponent::TickComponent(float DeltaTime, ELevelTick 
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (UnrealFRS.TickCount < UnrealFRS.FPS) {
-		UnrealFRS.TickCount++;
-	}
-	else {
-		UnrealFRS.TickCount = 1;
-	}
+	// Check the socket is close or not
+	if (client) {
 
-	// TODO: Check the socket is close or not
-	//if (SocketIsNotClosed) {
-		// UpdateSUMoByTickCount();
-		UpdateSUMOByMachineTime();
-	//}
-	/*else {
-		UE_LOG(LogTemp, Warning, TEXT("Tick. Socket Close."))
-	}*/
+		if (UnrealFRS.TickCount < UnrealFRS.FPS) {
+			UnrealFRS.TickCount++;
+		}
+		else {
+			UnrealFRS.TickCount = 1;
+		}
 
+
+		if (client->SetUpdateDeltaTFlag) {
+			// UpdateSUMoByTickCount();
+			UpdateSUMOByMachineTime();
+		}
+		else {
+			UE_LOG(LogTemp, Error, TEXT("VehiclePositionUpdateComponent Tick. Socket Close."))
+		}
+	}
 	
 }
 
@@ -68,7 +71,7 @@ void UVehiclePositionUpdateComponent::UpdateSUMOByTickCount() {
 	else if (UnrealFRS.TickCount == UnrealFRS.FPS) {
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
 		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d. Update from SUMo."), UnrealFRS.TickCount)
-			UpdateFromSUMO();
+		UpdateFromSUMO();
 	}
 	else {
 		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))
@@ -82,7 +85,7 @@ void UVehiclePositionUpdateComponent::UpdateSUMOByMachineTime() {
 	if (UnrealFRS.NextTimeToUpdate - TimeInWorld < 0.0001) {
 		UnrealFRS.NextTimeToUpdate += UnrealFRS.UpdateDeltaT;
 		UpdateFromSUMO();
-		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
+		 UE_LOG(LogTemp, Warning, TEXT("ActorComponent:: %f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, UnrealFRS.NextTimeToUpdate)
 
 	}
 	//else {
@@ -114,14 +117,15 @@ void UVehiclePositionUpdateComponent::UpdateFromSUMO() {
 	// Update location
 	auto vehiclepos = client->vehicle.getPosition(VehicleId);
 	VehicleNewPosition.X = vehiclepos.x * MeterUnitConversion;
-	VehicleNewPosition.Y = vehiclepos.y * MeterUnitConversion;
+	VehicleNewPosition.Y = vehiclepos.y * MeterUnitConversion * -1;
 	VehicleNewPosition.Z = vehiclepos.z * MeterUnitConversion;
 
 	auto vehicleangle = client->vehicle.getAngle(VehicleId);
-	if (vehicleangle != VehicleNewRotator.Yaw) {
+	if (fabs(vehicleangle - VehicleNewRotator.Yaw) > 0.00001) {
 		VehicleNewRotator.Yaw = vehicleangle;
 	}
-
+	UE_LOG(LogTemp, Display, TEXT("New Location: %s ; New Rotator: %s"), *VehicleNewPosition.ToString(), *VehicleNewRotator.ToString())
+	
 	FHitResult HitResult;
 	if (Owner->SetActorLocationAndRotation(VehicleNewPosition, VehicleNewRotator, false, &HitResult) == false) {
 
@@ -143,11 +147,11 @@ bool UVehiclePositionUpdateComponent::DestroyVehicle() {
 
 	if (Owner->Destroy()) {
 		// FString VId = VehicleId.c_str();
-		// UE_LOG(LogTemp, Warning, TEXT("Destroy %s success."), *VId)
+		// UE_LOG(LogTemp, Display, TEXT("Destroy %s success."), *VId)
 		return true;
 	}
 
-	// UE_LOG(LogTemp, Warning, TEXT("Fail to Destroy."));
+	// UE_LOG(LogTemp, Error, TEXT("Fail to Destroy."));
 	return false;
 
 }
