@@ -3,7 +3,6 @@
 
 #include "CustomVehicle.h"
 #include "Client.h"
-#include "VehicleInformation.h"
 #include "VehiclePositionUpdateComponent.h"
 // Sets default values
 ACustomVehicle::ACustomVehicle()
