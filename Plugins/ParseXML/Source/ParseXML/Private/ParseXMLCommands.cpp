@@ -6,7 +6,7 @@
 
 void FParseXMLCommands::RegisterCommands()
 {
-	UI_COMMAND(OpenPluginWindow, "ParseXML", "Bring up ParseXML window", EUserInterfaceActionType::Button, FInputGesture());
+	UI_COMMAND(PluginAction, "ParseXML", "Bring up ParseXML window", EUserInterfaceActionType::Button, FInputGesture());
 }
 
 #undef LOCTEXT_NAMESPACE

@@ -10,6 +10,11 @@
 #include "Framework/MultiBox/MultiBoxBuilder.h"
 
 #include "Misc/MessageDialog.h"
+#include "Developer/DesktopPlatform/Public/DesktopPlatformModule.h"
+#include "Editor/MainFrame/Public/Interfaces/IMainFrameModule.h"
+#include "HAL/FileManager.h"
+#include "fileParser.h"
+
 
 static const FName ParseXMLTabName("ParseXML");
 
@@ -27,7 +32,7 @@ void FParseXMLModule::StartupModule()
 	PluginCommands = MakeShareable(new FUICommandList);
 
 	PluginCommands->MapAction(
-		FParseXMLCommands::Get().OpenPluginWindow,
+		FParseXMLCommands::Get().PluginAction,
 		FExecuteAction::CreateRaw(this, &FParseXMLModule::PluginButtonClicked),
 		FCanExecuteAction());
 		
@@ -67,25 +72,57 @@ void FParseXMLModule::ShutdownModule()
 
 void FParseXMLModule::PluginButtonClicked()
 {
-	FGlobalTabmanager::Get()->InvokeTab(ParseXMLTabName);
-	FText DialogText = FText::Format(
-		LOCTEXT("Open your xml", "What's good?"),
+	// FGlobalTabmanager::Get()->InvokeTab(ParseXMLTabName);
+	/*FText DialogText = FText::Format(
+		LOCTEXT("Open your xml", "Message box"),
 		FText::FromString(TEXT("FParseXMLModule::PluginButtonClicked()")),
 		FText::FromString(TEXT("ParseXML.cpp"))
 	);
 
-	FMessageDialog::Open(EAppMsgType::Ok, DialogText);
+	FMessageDialog::Open(EAppMsgType::Ok, DialogText);*/
 
+
+	const FString& windowTitle = "Open XML Files";
+	FString RelativePath = FPaths::GameContentDir();
+	FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*RelativePath);
+	const FString& defaultFilePath = FullPath;
+	const FString& defaultFileName = "";
+	const FString& defaultFileType = "*.xml";
+
+	TArray <FString> originalOutFileNames = { "test" };
+	TArray < FString > & OutFilenames = originalOutFileNames;
+
+	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
+
+	const void* ParentWindowWindowHandle = nullptr;
+	IMainFrameModule& MainFrameModule = FModuleManager::LoadModuleChecked<IMainFrameModule>(TEXT("MainFrame"));
+	const TSharedPtr<SWindow>& MainFrameParentWindow = MainFrameModule.GetParentWindow();
+	if (MainFrameParentWindow.IsValid() && MainFrameParentWindow->GetNativeWindow().IsValid())
+	{
+		ParentWindowWindowHandle = MainFrameParentWindow->GetNativeWindow()->GetOSWindowHandle();
+		DesktopPlatform->OpenFileDialog(ParentWindowWindowHandle, windowTitle, defaultFilePath, defaultFileName,
+			defaultFileType, 0x00, OutFilenames);
+		UE_LOG(LogTemp, Warning, TEXT("Plugin works!"));
+	}
+
+	FString selectedFile = FString(OutFilenames[1]);
+	// UE_LOG(LogTemp, Warning, TEXT("selected file %s"), *selectedFile)
+
+	UfileParser fileParser(*selectedFile);
+
+	fileParser.loadxml();
+
+	// GEngine->Exec(nullptr, TEXT("Log LogTemp off"));
 }
 
 void FParseXMLModule::AddMenuExtension(FMenuBuilder& Builder)
 {
-	Builder.AddMenuEntry(FParseXMLCommands::Get().OpenPluginWindow);
+	Builder.AddMenuEntry(FParseXMLCommands::Get().PluginAction);
 }
 
 void FParseXMLModule::AddToolbarExtension(FToolBarBuilder& Builder)
 {
-	Builder.AddToolBarButton(FParseXMLCommands::Get().OpenPluginWindow);
+	Builder.AddToolBarButton(FParseXMLCommands::Get().PluginAction);
 }
 
 #undef LOCTEXT_NAMESPACE

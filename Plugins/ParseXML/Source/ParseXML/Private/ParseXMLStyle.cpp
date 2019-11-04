@@ -45,7 +45,7 @@ TSharedRef< FSlateStyleSet > FParseXMLStyle::Create()
 	TSharedRef< FSlateStyleSet > Style = MakeShareable(new FSlateStyleSet("ParseXMLStyle"));
 	Style->SetContentRoot(IPluginManager::Get().FindPlugin("ParseXML")->GetBaseDir() / TEXT("Resources"));
 
-	Style->Set("ParseXML.OpenPluginWindow", new IMAGE_BRUSH(TEXT("ButtonIcon_40x"), Icon40x40));
+	Style->Set("ParseXML.PluginAction", new IMAGE_BRUSH(TEXT("ButtonIcon_40x"), Icon40x40));
 
 	return Style;
 }

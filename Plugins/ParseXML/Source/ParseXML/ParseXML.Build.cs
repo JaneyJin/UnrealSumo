@@ -26,6 +26,8 @@ public class ParseXML : ModuleRules
 			new string[]
 			{
 				"Core",
+                "XmlParser",
+                "ProceduralMeshComponent"
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
@@ -42,6 +44,7 @@ public class ParseXML : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
+                
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

@@ -7,7 +7,7 @@
 
 #include "CoreMinimal.h"
 #include "Client.h" // TraCI object class
-#include "src/TraCIDefs.h"
+// #include "src/TraCIDefs.h"
 #include "VehicleInformation.h"
 #include "FrameRateSyn.h"
 #include "GameFramework/DefaultPawn.h"
