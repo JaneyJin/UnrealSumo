@@ -121,6 +121,7 @@ void UVehiclePositionUpdateComponent::UpdateFromSUMO() {
 	VehicleNewPosition.Z = vehiclepos.z * MeterUnitConversion;
 
 	auto vehicleangle = client->vehicle.getAngle(VehicleId);
+	vehicleangle -= 90;
 	if (fabs(vehicleangle - VehicleNewRotator.Yaw) > 0.00001) {
 		VehicleNewRotator.Yaw = vehicleangle;
 	}

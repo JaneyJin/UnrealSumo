@@ -184,8 +184,8 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 				SUMOVehicleInformation.VehicleColor.A = DepartedVehicleColor.a;
 
 				SUMOVehicleInformation.VehicleAngle.Yaw = client.vehicle.getAngle(DepartedVehicleId);
-
-
+				// Align with SUMO initial direction
+				SUMOVehicleInformation.VehicleAngle.Yaw = SUMOVehicleInformation.VehicleAngle.Yaw - 90;
 
 				if (!SpawnRandomVehicle(SUMOVehicleInformation)) {
 					UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle %s"), *SUMOVehicleInformation.VehicleId)

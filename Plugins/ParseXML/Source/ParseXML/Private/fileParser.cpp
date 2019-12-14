@@ -194,13 +194,28 @@ void UfileParser::ShapeProcessing(const TCHAR* ShapeString)
 	std::stringstream ss;
 	ss << CoordinateString;
 	float found;
+	int i = 0;
 	// extraction operator
 	while (!ss.eof())
 	{
 		//check if it is valid to put stringstream object into float variable
-		if (ss >> found)
+		/*if (ss >> found)
 		{
 			Shapecoordinates.push_back(found);
+		}*/
+
+		//check if it is valid to put stringstream object into float variable. Also check for every second index - if found multiply with with negative 1 to mirror about y axis.
+		if (ss >> found) {
+			if ((i % 2) == 0) {
+				found = (-1) * found; //mirror the network about the x-axis. This means changing the sign of the y coordinate. 
+				Shapecoordinates.push_back(found * 100); //Since the default unreal engine unit is cm and the default SUMO unit is m, we perform the conversion here.
+				i++;
+			}
+			else {
+				// Unit conversion
+				Shapecoordinates.push_back(found * 100);
+				i++;
+			}
 		}
 	}
 
