@@ -89,7 +89,7 @@ void FParseXMLModule::PluginButtonClicked()
 	const FString& defaultFileName = "";
 	const FString& defaultFileType = "*.xml";
 
-	TArray <FString> originalOutFileNames = { "test" };
+	TArray <FString> originalOutFileNames = { };
 	TArray < FString > & OutFilenames = originalOutFileNames;
 
 	IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
@@ -100,19 +100,21 @@ void FParseXMLModule::PluginButtonClicked()
 	if (MainFrameParentWindow.IsValid() && MainFrameParentWindow->GetNativeWindow().IsValid())
 	{
 		ParentWindowWindowHandle = MainFrameParentWindow->GetNativeWindow()->GetOSWindowHandle();
-		DesktopPlatform->OpenFileDialog(ParentWindowWindowHandle, windowTitle, defaultFilePath, defaultFileName,
-			defaultFileType, 0x00, OutFilenames);
+		if (DesktopPlatform->OpenFileDialog(ParentWindowWindowHandle, windowTitle, defaultFilePath, defaultFileName,
+			defaultFileType, 0x00, OutFilenames)) {
+			// GEngine->Exec(nullptr, TEXT("Log LogTemp off"));
+
+			FString selectedFile = FString(OutFilenames[0]);
+			// UE_LOG(LogTemp, Warning, TEXT("selected file %s"), *selectedFile)
+
+			UfileParser fileParser(*selectedFile);
+			fileParser.loadxml();
+		}
 		UE_LOG(LogTemp, Warning, TEXT("Plugin works!"));
 	}
 
-	FString selectedFile = FString(OutFilenames[1]);
-	// UE_LOG(LogTemp, Warning, TEXT("selected file %s"), *selectedFile)
 
-	UfileParser fileParser(*selectedFile);
-
-	fileParser.loadxml();
-
-	// GEngine->Exec(nullptr, TEXT("Log LogTemp off"));
+	
 }
 
 void FParseXMLModule::AddMenuExtension(FMenuBuilder& Builder)

@@ -12,11 +12,38 @@
 //Initializer List
 UfileParser::UfileParser(const TCHAR* selectedFile) : selectedXMLFile(selectedFile)
 {
-	UWorld* World = GEditor->GetEditorWorldContext().World();
+	
+	// Set AtomosphericFog
 	FVector Location = FVector(0.0f, 0.0f, 100.0f);
 	FRotator Rotation = FRotator(0.0f, 0.0f, 0.0f);
 	FActorSpawnParameters SpawnParameters;
 	World->SpawnActor<AAtmosphericFog>(Location, Rotation, SpawnParameters);
+	Location.Z = 100000.0f;
+
+	// ???
+	ASkyLight* Skylight = World->SpawnActor<ASkyLight>(Location, Rotation, SpawnParameters);
+	
+	if (Skylight != nullptr) {
+		/* FLightingBuildOptions LightOptions;
+		Skylight->GetLightComponent()->SetIntensity(5.0f);
+		GEditor->BuildLighting(LightOptions);*/
+	}
+}
+
+void UfileParser::getAllActorsOfClass() {
+	////UGameplayStatics::GetAllActorsOfClass(World, ARoadMesh::StaticClass(), FoundActors);
+	//// destroyFoundActors();
+	//UGameplayStatics::GetAllActorsOfClass(World, AAtmosphericFog::StaticClass(), FoundActors);
+	//destroyFoundActors();
+	//UGameplayStatics::GetAllActorsOfClass(World, ASkyLight::StaticClass(), FoundActors);
+	//destroyFoundActors();
+	//// UGameplayStatics::GetAllActorsOfClass(World, AStopSignMesh::StaticClass(), FoundActors);
+	//// destroyFoundActors();
+}
+void UfileParser::destroyFoundActors() {
+	//for (int i = 0; i < FoundActors.Num(); i++) {
+	//	World->DestroyActor(FoundActors[i]); //Destroy all actors before starting
+	//}
 }
 
 UfileParser::~UfileParser()
@@ -229,7 +256,7 @@ SimpleNodePtr UfileParser::InitializeNode() {
 	Node->SetID(*tempNodeID);
 	// std::vector<float> 
 	// Unit is meter here. Need to switch to Unreal unit
-	Node->SetShapeCoordinates(Shapecoordinates);
+	// Node->SetShapeCoordinates(Shapecoordinates);
 	Node->SetPosition(nodeXCoordinate, nodeYCoordinate);
 
 

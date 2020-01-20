@@ -8,6 +8,7 @@
 
 class SimpleNode
 {
+	// Friend class UfileParser can access private and protected members of SimpleNode
 	friend class UfileParser;
 
 private:
@@ -18,6 +19,6 @@ private:
 public:
 	void SetID(const TCHAR*);
 	void SetPosition(const TCHAR*, const TCHAR*);
-	void SetShapeCoordinates(std::vector<float> Shapecoordinates);
+	// void SetShapeCoordinates(std::vector<float> Shapecoordinates);
 
 };

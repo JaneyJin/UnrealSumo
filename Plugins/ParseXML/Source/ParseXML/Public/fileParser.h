@@ -13,8 +13,11 @@ class UfileParser : public IFastXmlCallback
 {
 
 private:
+	// Constructor
 	FString selectedXMLFile;
 	
+	UWorld* World = GEditor->GetEditorWorldContext().World();
+
 	// Process Elements
 	bool isElementNode = false;
 	bool isElementEdge = false;
@@ -47,10 +50,13 @@ private:
 	// InitializeNode
 	NodeContainer NodeCont;
 
+
+
+
 public:
 	
 	UfileParser(const TCHAR*);
-	~UfileParser();
+	virtual ~UfileParser();
 
 	bool loadxml();
 
@@ -65,4 +71,7 @@ public:
 	void InitializeEdgeAttributes(const TCHAR* AttributeName, const TCHAR* AttributeValue);
 	SimpleNodePtr InitializeNode();
 	
+	// To find all actors that are the types ARoadMesh, AAtmosphericFog and ASkyLight types, and destroy them
+	void destroyFoundActors();
+	void getAllActorsOfClass();
 };
