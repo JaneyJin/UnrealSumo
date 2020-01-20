@@ -27,7 +27,7 @@ public class ParseXML : ModuleRules
 			{
 				"Core",
                 "XmlParser",
-                "ProceduralMeshComponent"
+               "ProceduralMeshComponent" ,
 				// ... add other public dependencies that you statically link with here ...
 			}
 			);
