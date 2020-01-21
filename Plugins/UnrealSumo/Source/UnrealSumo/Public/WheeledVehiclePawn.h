@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -11,12 +11,13 @@ class USpringArmComponent;
 class UTextRenderComponent;
 class UInputComponent;
 
+
 UCLASS()
 class UNREALSUMO_API AWheeledVehiclePawn : public AWheeledVehicle
 {
 	GENERATED_BODY()
 
-public:
+protected:
 	// User defined wheeled vehicle
 	/** Spring arm that will offset the camera */
 	UPROPERTY(Category = Camera, VisibleDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -60,16 +61,49 @@ public:
 	/** The color of the incar gear text when in reverse */
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 		FColor	GearDisplayReverseColor;
+
+	/** The current speed as a string eg 10 km/h */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
+		FText SpeedDisplayString;
+
+	/** The current gear as a string (R,N, 1,2 etc) */
+	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
+		FText GearDisplayString;
+
+
+
 public:
+
+	static const FName LookUpBinding;
+	static const FName LookRightBinding;
+
 	void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent);
 	void MoveForward(float Val);
 	void MoveRight(float Val);
 	void OnHandbrakePressed();
 	void OnHandbrakeReleased();
 
-	void SetupWheeledVehicle();
+	
 	void OnToggleCamera();
 	void EnableIncarView(const bool bState, const bool bForce = false);
 	void OnResetVR();
+	void UpdateHUDStrings();
+	void SetupInCarHUD();
 
+	/** Returns SpringArm subobject **/
+	FORCEINLINE USpringArmComponent* GetSpringArm() const { return SpringArm; }
+	/** Returns Camera subobject **/
+	FORCEINLINE UCameraComponent* GetCamera() const { return Camera; }
+	/** Returns InternalCamera subobject **/
+	FORCEINLINE UCameraComponent* GetInternalCamera() const { return InternalCamera; }
+	/** Returns InCarSpeed subobject **/
+	FORCEINLINE UTextRenderComponent* GetInCarSpeed() const { return InCarSpeed; }
+	/** Returns InCarGear subobject **/
+	FORCEINLINE UTextRenderComponent* GetInCarGear() const { return InCarGear; }
+	
+	AWheeledVehiclePawn();
+
+	virtual void BeginPlay() override;
+	virtual void Tick(float Delta) override;
+	
 };

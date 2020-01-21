@@ -13,13 +13,27 @@
 #include "WheeledVehicleMovementComponent4W.h"
 #include "Materials/Material.h"
 #include "IXRTrackingSystem.h" 
+#include "CustomWheelFront.h"
+#include "CustomWheelRear.h"
 
-void AWheeledVehiclePawn::SetupWheeledVehicle() {
+// For VR Headset
+//#if HMD_MODULE_INCLUDED
+//	#include "IHeadMountedDisplay.h"
+//	#include "HeadMountedDisplayFunctionLibrary.h"
+//#endif // HMD_MODULE_INCLUDED
+
+const FName AWheeledVehiclePawn::LookUpBinding("LookUp");
+const FName AWheeledVehiclePawn::LookRightBinding("LookRight");
+
+#define LOCTEXT_NAMESPACE "YishenWheeledVehiclePawn"
+
+
+AWheeledVehiclePawn::AWheeledVehiclePawn() {
 	// Car mesh
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh(TEXT("/Game/WheeledVehicle/Sedan/Sedan_SkelMesh"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh(TEXT("/UnrealSumo/WheeledVehicle/Sedan/Sedan_SkelMesh"));
 	GetMesh()->SetSkeletalMesh(CarMesh.Object);
 	// Car animation blueprint
-	static ConstructorHelpers::FClassFinder<UObject> AnimBPClass(TEXT("/Game/WheeledVehicle/Sedan/Sedan_AnimBP"));
+	static ConstructorHelpers::FClassFinder<UObject> AnimBPClass(TEXT("/UnrealSumo/WheeledVehicle/Sedan/Sedan_AnimBP"));
 	GetMesh()->SetAnimInstanceClass(AnimBPClass.Class);
 
 	// Simulation
@@ -27,19 +41,19 @@ void AWheeledVehiclePawn::SetupWheeledVehicle() {
 
 	check(Vehicle4W->WheelSetups.Num() == 4);
 
-	//Vehicle4W->WheelSetups[0].WheelClass = UCustomWheelFront::StaticClass();
+	Vehicle4W->WheelSetups[0].WheelClass = UCustomWheelFront::StaticClass();
 	Vehicle4W->WheelSetups[0].BoneName = FName("Wheel_Front_Left");
 	Vehicle4W->WheelSetups[0].AdditionalOffset = FVector(0.f, -12.f, 0.f);
 
-	//Vehicle4W->WheelSetups[1].WheelClass = UCustomWheelFront::StaticClass();
+	Vehicle4W->WheelSetups[1].WheelClass = UCustomWheelFront::StaticClass();
 	Vehicle4W->WheelSetups[1].BoneName = FName("Wheel_Front_Right");
 	Vehicle4W->WheelSetups[1].AdditionalOffset = FVector(0.f, 12.f, 0.f);
 
-	//Vehicle4W->WheelSetups[2].WheelClass = UCustomsWheelRear::StaticClass();
+	Vehicle4W->WheelSetups[2].WheelClass = UCustomWheelRear::StaticClass();
 	Vehicle4W->WheelSetups[2].BoneName = FName("Wheel_Rear_Left");
 	Vehicle4W->WheelSetups[2].AdditionalOffset = FVector(0.f, -12.f, 0.f);
 
-	//Vehicle4W->WheelSetups[3].WheelClass = UCustomWheelRear::StaticClass();
+	Vehicle4W->WheelSetups[3].WheelClass = UCustomWheelRear::StaticClass();
 	Vehicle4W->WheelSetups[3].BoneName = FName("Wheel_Rear_Right");
 	Vehicle4W->WheelSetups[3].AdditionalOffset = FVector(0.f, 12.f, 0.f);
 
@@ -104,6 +118,50 @@ void AWheeledVehiclePawn::SetupWheeledVehicle() {
 	bInReverseGear = false;
 }
 
+void AWheeledVehiclePawn::BeginPlay()
+{
+	Super::BeginPlay();
+
+	bool bEnableInCar = false;
+//#if HMD_MODULE_INCLUDED
+//	bEnableInCar = UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled();
+//#endif // HMD_MODULE_INCLUDED
+	EnableIncarView(bEnableInCar, true);
+}
+
+void AWheeledVehiclePawn::Tick(float Delta)
+{
+	Super::Tick(Delta);
+
+
+	// Setup the flag to say we are in reverse gear
+	bInReverseGear = GetVehicleMovement()->GetCurrentGear() < 0;
+
+	// Update the strings used in the hud (incar and onscreen)
+	UpdateHUDStrings();
+
+	// Set the string in the incar hud
+	SetupInCarHUD();
+
+	bool bHMDActive = false;
+//#if HMD_MODULE_INCLUDED
+//	/*if ((GEngine->HMDDevice.IsValid() == true) && ((GEngine->HMDDevice->IsHeadTrackingAllowed() == true) || (GEngine->IsStereoscopic3D() == true)))
+//	{
+//		bHMDActive = true;
+//	}*/
+//
+//#endif // HMD_MODULE_INCLUDED
+	if (bHMDActive == false)
+	{
+		if ((InputComponent) && (bInCarCameraActive == true))
+		{
+			FRotator HeadRotation = InternalCamera->RelativeRotation;
+			HeadRotation.Pitch += InputComponent->GetAxisValue(LookUpBinding);
+			HeadRotation.Yaw += InputComponent->GetAxisValue(LookRightBinding);
+			InternalCamera->RelativeRotation = HeadRotation;
+		}
+	}
+}
 
 void AWheeledVehiclePawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -174,19 +232,58 @@ void AWheeledVehiclePawn::EnableIncarView(const bool bState, const bool bForce)
 
 void AWheeledVehiclePawn::OnResetVR()
 {
-#if 0
-	/*if (GEngine->HMDDevice.IsValid())
-	{
-		GEngine->HMDDevice->ResetOrientationAndPosition();
-		InternalCamera->SetRelativeLocation(InternalCameraOrigin);
-		GetController()->SetControlRotation(FRotator());
-	}*/
+//#if HMD_MODULE_INCLUDED
+//	/*if (GEngine->HMDDevice.IsValid())
+//	{
+//		GEngine->HMDDevice->ResetOrientationAndPosition();
+//		InternalCamera->SetRelativeLocation(InternalCameraOrigin);
+//		GetController()->SetControlRotation(FRotator());
+//	}*/
+//
+//	if (GEngine->XRSystem.IsValid())
+//	{
+//		GEngine->XRSystem->ResetOrientationAndPosition();
+//		InternalCamera->SetRelativeLocation(InternalCameraOrigin);
+//		GetController()->SetControlRotation(FRotator());
+//	}
+//#endif // HMD_MODULE_INCLUDED
+}
 
-	if (GEngine->XRSystem.IsValid())
+void AWheeledVehiclePawn::UpdateHUDStrings()
+{
+	float KPH = FMath::Abs(GetVehicleMovement()->GetForwardSpeed()) * 0.036f;
+	int32 KPH_int = FMath::FloorToInt(KPH);
+
+	// Using FText because this is display text that should be localizable
+	SpeedDisplayString = FText::Format(LOCTEXT("SpeedFormat", "{0} km/h"), FText::AsNumber(KPH_int));
+
+	if (bInReverseGear == true)
 	{
-		GEngine->XRSystem->ResetOrientationAndPosition();
-		InternalCamera->SetRelativeLocation(InternalCameraOrigin);
-		GetController()->SetControlRotation(FRotator());
+		GearDisplayString = FText(LOCTEXT("ReverseGear", "R"));
 	}
-#endif // HMD_MODULE_INCLUDED
+	else
+	{
+		int32 Gear = GetVehicleMovement()->GetCurrentGear();
+		GearDisplayString = (Gear == 0) ? LOCTEXT("N", "N") : FText::AsNumber(Gear);
+	}
+}
+
+void AWheeledVehiclePawn::SetupInCarHUD()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if ((PlayerController != nullptr) && (InCarSpeed != nullptr) && (InCarGear != nullptr))
+	{
+		// Setup the text render component strings
+		InCarSpeed->SetText(SpeedDisplayString);
+		InCarGear->SetText(GearDisplayString);
+
+		if (bInReverseGear == false)
+		{
+			InCarGear->SetTextRenderColor(GearDisplayColor);
+		}
+		else
+		{
+			InCarGear->SetTextRenderColor(GearDisplayReverseColor);
+		}
+	}
 }

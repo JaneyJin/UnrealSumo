@@ -26,8 +26,10 @@ public class UnrealSumo : ModuleRules
 			new string[]
 			{
 				"Core",
+                 "HeadMountedDisplay",
+
             }
-			);
+            );
 			
 		
 		PrivateDependencyModuleNames.AddRange(
@@ -37,7 +39,8 @@ public class UnrealSumo : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-                "PhysXVehicles"
+                "PhysXVehicles",
+               
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
