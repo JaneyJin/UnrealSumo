@@ -9,7 +9,7 @@
 #include "CustomWheeledVehicle.generated.h"
 
 class Client;
-class UVehiclePositionUpdateComponent;
+class UWheeledVehicleUpdateComponent;
 
 UCLASS()
 class UNREALSUMO_API ACustomWheeledVehicle : public AWheeledVehicle
@@ -17,9 +17,8 @@ class UNREALSUMO_API ACustomWheeledVehicle : public AWheeledVehicle
 	GENERATED_BODY()
 
 public:
-
-	// Attach Actor component to the Vehicle blueprint class
-	UVehiclePositionUpdateComponent* VehiclePositionUpdateComponent = nullptr;
+	// Sets default values for this pawn's properties
+	ACustomWheeledVehicle();
 
 	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
 	FVehicleInformation UnrealVehicleInformation;
@@ -35,4 +34,6 @@ public:
 	 * @return
 	 */
 	bool InitializeWheeledVehicle(FVehicleInformation &VehicleToSet, Client* ClientToSet, FrameRateSyn &SUMOToUnrealFrameRate);
+
+	UWheeledVehicleUpdateComponent* WheeledVehicleUpdateComponent = nullptr;
 };

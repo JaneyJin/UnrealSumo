@@ -139,7 +139,7 @@ void ASumoDefaultPawn::UpdateSUMOByMachineTime() {
 	if (SUMOToUnrealFrameRate.NextTimeToUpdate - TimeInWorld < 0.0001) {
 		SUMOToUnrealFrameRate.NextTimeToUpdate += SUMOToUnrealFrameRate.UpdateDeltaT;
 		UpdateFromSUMO();
-		UE_LOG(LogTemp, Warning, TEXT("SumoDefaultPawn:: SUMOSTEP: %d ; Update from SUMO: %f . NextTimeToUpdate %f"), SUMOStep, TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
+		// UE_LOG(LogTemp, Warning, TEXT("SumoDefaultPawn:: SUMOSTEP: %d ; Update from SUMO: %f . NextTimeToUpdate %f"), SUMOStep, TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
 	}
 	/*else {
 		UE_LOG(LogTemp, Display, TEXT("%f GameMode Tick()"), TimeInWorld)
@@ -272,9 +272,9 @@ bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVe
 		SpawnRotator.Yaw = DepartedVehicle.VehicleAngle.Yaw;
 		UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %s"), *SpawnPoint.ToString(), *SpawnRotator.ToString())
 			if (WheeledVehicleBPList.Num() > 0) {
-				UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %d"),WheeledVehicleBPList.Num())
+				UE_LOG(LogTemp, Display, TEXT("WheeledVehicle number %f"),WheeledVehicleBPList.Num())
 				// selectedClass = *VehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
-					selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
+				selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
 				RandomWheeledVehicle = Cast<ACustomWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
 				if (RandomWheeledVehicle) {
 					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
