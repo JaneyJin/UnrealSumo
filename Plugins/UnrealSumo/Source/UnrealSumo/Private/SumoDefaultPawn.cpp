@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine.h"
 #include "CustomVehicle.h"
+#include "CustomWheeledVehicle.h"
 
 ASumoDefaultPawn::ASumoDefaultPawn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -124,7 +125,7 @@ void ASumoDefaultPawn::UpdateSUMOByTickCount() {
 	else if (SUMOToUnrealFrameRate.TickCount == SUMOToUnrealFrameRate.FPS) {
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
 		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.TickCount)
-			UpdateFromSUMO();
+		UpdateFromSUMO();
 	}
 	else {
 		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))
@@ -174,7 +175,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 				DepartedVehiclePos = client.vehicle.getPosition(DepartedVehicleId);
 				SUMOVehicleInformation.VehiclePosition.X = DepartedVehiclePos.x * MeterUnitConversion;
 				SUMOVehicleInformation.VehiclePosition.Y = DepartedVehiclePos.y * MeterUnitConversion * -1;
-				SUMOVehicleInformation.VehiclePosition.Z = DepartedVehiclePos.z * MeterUnitConversion + 10;
+				SUMOVehicleInformation.VehiclePosition.Z = DepartedVehiclePos.z * MeterUnitConversion + 30;
 
 				// Convert libsumo:: TraCIColor into FColor
 				DepartedVehicleColor = client.vehicle.getColor(DepartedVehicleId);
@@ -187,7 +188,8 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 				// Align with SUMO initial direction
 				SUMOVehicleInformation.VehicleAngle.Yaw = SUMOVehicleInformation.VehicleAngle.Yaw - 90;
 
-				if (!SpawnRandomVehicle(SUMOVehicleInformation)) {
+				// if (!SpawnRandomVehicle(SUMOVehicleInformation)) {
+				if (!SpawnRandomWheeledVehicle(SUMOVehicleInformation)) {
 					UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle %s"), *SUMOVehicleInformation.VehicleId)
 
 						if (GEngine)
@@ -235,6 +237,48 @@ bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) 
 				if (RandomVehicle) {
 					if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
 						// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
+						return true;
+					}
+				}
+				return false;
+
+			}
+			else {
+				UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle because none blueprint class is selected"))
+					if (GEngine)
+					{
+						const int32 AlwaysAddKey = -1; // Add a new one instead of overwrite last message
+						static const FString ErrorMessage(TEXT("Fail to spawn vehicle because none blueprint class is selected"));
+						GEngine->AddOnScreenDebugMessage(AlwaysAddKey, 5.0f, FColor::Red, ErrorMessage);
+
+					}
+			}
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("Can't get world."))
+	}
+
+	return false;
+}
+
+
+bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehicle) {
+
+
+	// Spawn a vehicle at its start location from SUMO
+	UWorld* world = GetWorld();
+	if (world) {
+		SpawnPoint = SUMOVehicleInformation.VehiclePosition;
+		SpawnRotator.Yaw = DepartedVehicle.VehicleAngle.Yaw;
+		UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %s"), *SpawnPoint.ToString(), *SpawnRotator.ToString())
+			if (WheeledVehicleBPList.Num() > 0) {
+				UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %d"),WheeledVehicleBPList.Num())
+				// selectedClass = *VehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
+					selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
+				RandomWheeledVehicle = Cast<ACustomWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
+				if (RandomWheeledVehicle) {
+					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
+						UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomWheeledVehicle->GetName())
 						return true;
 					}
 				}

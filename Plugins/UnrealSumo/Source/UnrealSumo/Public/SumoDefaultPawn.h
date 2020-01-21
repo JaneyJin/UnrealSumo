@@ -16,6 +16,7 @@
 // Predefine class
 
 class ACustomVehicle;
+class ACustomWheeledVehicle;
 
 UCLASS()
 class UNREALSUMO_API ASumoDefaultPawn : public ADefaultPawn
@@ -76,6 +77,11 @@ public:
 
 	ACustomVehicle* RandomVehicle = nullptr;
 
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
+		TArray<TSubclassOf<ACustomWheeledVehicle>> WheeledVehicleBPList;
+
+	ACustomWheeledVehicle* RandomWheeledVehicle = nullptr;
+
 
 	/**
 	 * Unreal get the frame rate from SUMO and re-align Unreal time to update from SUMO
@@ -112,6 +118,13 @@ public:
 	 */
 	bool SpawnRandomVehicle(FVehicleInformation& DepartedVehicle);
 
+
+	/**
+	 * Spawn random vehicle from the WheeledVehicleBPList in SumoDefaultPawn_BP in the UE
+	 * @param  vehicle Vehicle to spawn
+	 * @return    1 on success, -1 on fail
+	 */
+	bool SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehicle);
 
 public:
 	// Override original function defined by Unreal Engine
