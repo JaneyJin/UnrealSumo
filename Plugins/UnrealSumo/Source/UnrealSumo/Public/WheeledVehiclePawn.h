@@ -83,7 +83,7 @@ public:
 	void OnHandbrakePressed();
 	void OnHandbrakeReleased();
 
-	
+
 	void OnToggleCamera();
 	void EnableIncarView(const bool bState, const bool bForce = false);
 	void OnResetVR();
