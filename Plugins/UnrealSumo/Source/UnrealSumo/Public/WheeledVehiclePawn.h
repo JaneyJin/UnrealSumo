@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "WheeledVehicle.h"
+#include "FrameRateSyn.h"
+#include "VehicleInformation.h"
 #include "WheeledVehiclePawn.generated.h"
 
 class UCameraComponent;
@@ -11,6 +13,7 @@ class USpringArmComponent;
 class UTextRenderComponent;
 class UInputComponent;
 
+class Client;
 
 UCLASS()
 class UNREALSUMO_API AWheeledVehiclePawn : public AWheeledVehicle
@@ -70,7 +73,8 @@ protected:
 	UPROPERTY(Category = Display, VisibleDefaultsOnly, BlueprintReadOnly)
 		FText GearDisplayString;
 
-
+	int count = 0;
+	int ThrottleVal = 10;
 
 public:
 
@@ -105,5 +109,20 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float Delta) override;
+
+
+
+	// Update vehicle information
+	bool InitializeWheeledVehicle(FVehicleInformation &VehicleToSet, Client* ClientToSet, FrameRateSyn &SUMOToUnrealFrameRate);
+	bool DestroyVehicle();
+	void UpdateSUMOByTickCount(float Delta);
+	void UpdateFromSUMO(float Delta);
+	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
+	FVehicleInformation UnrealVehicleInformation;
+
+	Client* client;
+	FString  VehicleId;
+	FrameRateSyn UnrealFRS;
 	
+
 };

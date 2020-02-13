@@ -6,6 +6,8 @@
 #include "WheeledVehicleMovementComponent4W.h"
 #include "WheeledVehicleUpdateComponent.h"
 #include "Components/InputComponent.h"
+#include "CustomWheelFront.h"
+#include "CustomWheelRear.h"
 // Sets default values
 
 
@@ -34,17 +36,86 @@ ACustomWheeledVehicle::ACustomWheeledVehicle()
 {
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	PrimaryActorTick.bStartWithTickEnabled = true;
+	// PrimaryActorTick.bStartWithTickEnabled = true;
 	//// Add actor component to the vehicle blueprint class
-	//WheeledVehicleUpdateComponent = CreateDefaultSubobject<UWheeledVehicleUpdateComponent>(FName("Update Vehicle Position Component"));
+	WheeledVehicleUpdateComponent = CreateDefaultSubobject<UWheeledVehicleUpdateComponent>(FName("UpdateVehiclePositionComponent"));
 	// WheeledVehicleUpdateComponent = Super(ObjectInitializer.SetDefaultSubobjectClass<UWheeledVehicleUpdateComponent>("Update Vehicle Position Component"));
 	//GetVehicleMovementComponent()->SetThrottleInput(10);
 
-
+	setupVehicleMovementComponent();
 
 	//SetupPlayerInputComponent();
 }
+void ACustomWheeledVehicle::setupVehicleMovementComponent()
+{
+	UWheeledVehicleMovementComponent4W* movement = CastChecked<UWheeledVehicleMovementComponent4W>(GetVehicleMovementComponent());
+	check(movement->WheelSetups.Num() == 4);
 
+	// Wheels/Tires
+	// Setup the wheels
+	movement->WheelSetups[0].WheelClass = UCustomWheelFront::StaticClass();
+	movement->WheelSetups[0].BoneName = FName("Wheel_Front_Left");
+	movement->WheelSetups[0].AdditionalOffset = FVector(0.f, -12.f, 0.f);
+
+	movement->WheelSetups[1].WheelClass = UCustomWheelFront::StaticClass();
+	movement->WheelSetups[1].BoneName = FName("Wheel_Front_Right");
+	movement->WheelSetups[1].AdditionalOffset = FVector(0.f, 12.f, 0.f);
+
+	movement->WheelSetups[2].WheelClass = UCustomWheelRear::StaticClass();
+	movement->WheelSetups[2].BoneName = FName("Wheel_Rear_Left");
+	movement->WheelSetups[2].AdditionalOffset = FVector(0.f, -12.f, 0.f);
+
+	movement->WheelSetups[3].WheelClass = UCustomWheelRear::StaticClass();
+	movement->WheelSetups[3].BoneName = FName("Wheel_Rear_Right");
+	movement->WheelSetups[3].AdditionalOffset = FVector(0.f, 12.f, 0.f);
+
+	// Adjust the tire loading
+	movement->MinNormalizedTireLoad = 0.0f;
+	movement->MinNormalizedTireLoadFiltered = 0.2308f;
+	movement->MaxNormalizedTireLoad = 2.0f;
+	movement->MaxNormalizedTireLoadFiltered = 2.0f;
+
+	// Engine 
+	// Torque setup
+	movement->EngineSetup.MaxRPM = 5700.0f;
+	movement->EngineSetup.TorqueCurve.GetRichCurve()->Reset();
+	movement->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(0.0f, 400.0f);
+	movement->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(1890.0f, 500.0f);
+	movement->EngineSetup.TorqueCurve.GetRichCurve()->AddKey(5730.0f, 400.0f);
+
+	// Adjust the steering 
+	movement->SteeringCurve.GetRichCurve()->Reset();
+	movement->SteeringCurve.GetRichCurve()->AddKey(0.0f, 1.0f);
+	movement->SteeringCurve.GetRichCurve()->AddKey(40.0f, 0.7f);
+	movement->SteeringCurve.GetRichCurve()->AddKey(120.0f, 0.6f);
+
+	// Transmission	
+	// We want 4wd
+	movement->DifferentialSetup.DifferentialType = EVehicleDifferential4W::LimitedSlip_4W;
+
+	// Drive the front wheels a little more than the rear
+	movement->DifferentialSetup.FrontRearSplit = 0.65;
+
+	// Automatic gearbox
+	movement->TransmissionSetup.bUseGearAutoBox = true;
+	movement->TransmissionSetup.GearSwitchTime = 0.15f;
+	movement->TransmissionSetup.GearAutoBoxLatency = 1.0f;
+
+	// Disable reverse as brake, this is needed for SetBreakInput() to take effect
+	movement->bReverseAsBrake = false;
+
+	// Physics settings
+	// Adjust the center of mass - the buggy is quite low
+	/*UPrimitiveComponent* primitive = Cast<UPrimitiveComponent>(movement->UpdatedComponent);
+	if (primitive)
+	{
+		primitive->BodyInstance.COMNudge = FVector(8.0f, 0.0f, 0.0f);
+	}*/
+
+	// Set the inertia scale. This controls how the mass of the vehicle is distributed.
+	movement->InertiaTensorScale = FVector(1.0f, 1.333f, 1.2f);
+	movement->bDeprecatedSpringOffsetMode = true;
+}
 void ACustomWheeledVehicle::BeginPlay() {
 	UE_LOG(LogTemp, Warning, TEXT("CustomWheeledVehicle begin play"))
 }

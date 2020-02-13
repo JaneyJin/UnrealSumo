@@ -32,7 +32,7 @@ void UVehiclePositionUpdateComponent::TickComponent(float DeltaTime, ELevelTick 
 	// Check the socket is close or not
 	if (client) {
 
-		if (UnrealFRS.TickCount < UnrealFRS.FPS) {
+		if (UnrealFRS.TickCount < UnrealFRS.UnrealFPS) {
 			UnrealFRS.TickCount++;
 		}
 		else {
@@ -65,10 +65,10 @@ bool UVehiclePositionUpdateComponent::SetVehicleIdAndClient(FVehicleInformation 
 }
 
 void UVehiclePositionUpdateComponent::UpdateSUMOByTickCount() {
-	if (UnrealFRS.TickCount < UnrealFRS.FPS) {
+	if (UnrealFRS.TickCount < UnrealFRS.UnrealFPS) {
 		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), UnrealFRS.TickCount)
 	}
-	else if (UnrealFRS.TickCount == UnrealFRS.FPS) {
+	else if (UnrealFRS.TickCount == UnrealFRS.UnrealFPS) {
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
 		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d. Update from SUMo."), UnrealFRS.TickCount)
 			UpdateFromSUMO();

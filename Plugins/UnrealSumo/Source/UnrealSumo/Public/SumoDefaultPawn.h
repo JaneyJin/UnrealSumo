@@ -17,6 +17,7 @@
 
 class ACustomVehicle;
 class ACustomWheeledVehicle;
+class AWheeledVehiclePawn;
 
 UCLASS()
 class UNREALSUMO_API ASumoDefaultPawn : public ADefaultPawn
@@ -77,11 +78,15 @@ public:
 
 	ACustomVehicle* RandomVehicle = nullptr;
 
-	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
+	/*UPROPERTY(EditAnywhere, Category = "SUMO Setup")
 		TArray<TSubclassOf<ACustomWheeledVehicle>> WheeledVehicleBPList;
 
-	ACustomWheeledVehicle* RandomWheeledVehicle = nullptr;
+	ACustomWheeledVehicle* RandomWheeledVehicle = nullptr;*/
 
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
+		TArray<TSubclassOf<AWheeledVehiclePawn>> WheeledVehicleBPList;
+
+	AWheeledVehiclePawn* RandomWheeledVehicle = nullptr;
 
 	/**
 	 * Unreal get the frame rate from SUMO and re-align Unreal time to update from SUMO

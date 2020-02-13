@@ -7,6 +7,7 @@
 #include "Engine.h"
 #include "CustomVehicle.h"
 #include "CustomWheeledVehicle.h"
+#include "WheeledVehiclePawn.h"
 
 ASumoDefaultPawn::ASumoDefaultPawn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -52,23 +53,13 @@ void ASumoDefaultPawn::Tick(float DeltaTime)
 	/* auto DateTime = FDateTime::Now().GetMillisecond();
 	 auto DateTime = FDateTime::Now();
 	 UE_LOG(LogTemp, Warning, TEXT("Machine Time: %s"), *DateTime.ToString())*/
-
-
-	 // Fix Tick() rate to update vehicle from SUMO
-	if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.FPS) {
-		SUMOToUnrealFrameRate.TickCount++;
-	}
-	else {
-		SUMOToUnrealFrameRate.TickCount = 1;
-	}
-
 	if (SocketIsNotClosed) {
 		TimeInWorld = GetWorld()->GetTimeSeconds();
 
 		// Not allow UE Tick() slower than SUMo FPS.  
 		if (client.SetUpdateDeltaTFlag) {
-			// UpdateSUMOByTickCount();
-			UpdateSUMOByMachineTime();
+			UpdateSUMOByTickCount();
+			//UpdateSUMOByMachineTime();
 		}
 	}
 	/*else {
@@ -82,9 +73,9 @@ void ASumoDefaultPawn::MatchFrameRatePerSecond() {
 	auto UEDeltaT = FApp::GetDeltaTime();
 
 	// GetFPS and set TickCounter
-	SUMOToUnrealFrameRate.FPS = FMath::RoundHalfFromZero(1.0f / UEDeltaT);
+	SUMOToUnrealFrameRate.UnrealFPS = FMath::RoundHalfFromZero(1.0f / UEDeltaT);
 
-	UE_LOG(LogTemp, Warning, TEXT("SUMO DeltaT is %f. UE DeltaT is %f.FPS is %d"), SUMODeltaT, UEDeltaT, SUMOToUnrealFrameRate.FPS)
+	UE_LOG(LogTemp, Warning, TEXT("SUMO DeltaT is %f. UE DeltaT is %f.FPS is %d"), SUMODeltaT, UEDeltaT, SUMOToUnrealFrameRate.UnrealFPS)
 
 		if (SUMODeltaT > 0) {
 
@@ -93,6 +84,7 @@ void ASumoDefaultPawn::MatchFrameRatePerSecond() {
 			}
 			else {
 				SUMOToUnrealFrameRate.NextTimeToUpdate = SUMOToUnrealFrameRate.UpdateDeltaT = SUMODeltaT;
+				SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates = 1 / SUMODeltaT;
 				client.SetUpdateDeltaTFlag = true;
 			}
 
@@ -115,16 +107,25 @@ void ASumoDefaultPawn::MatchFrameRatePerSecond() {
 			UE_LOG(LogTemp, Warning, TEXT("SUMO DeltaT is negative or zero. Fail to set frame rate match."))
 		}
 
-	UE_LOG(LogTemp, Warning, TEXT("Update at %f per second. Next update at %f"), SUMOToUnrealFrameRate.UpdateDeltaT, SUMOToUnrealFrameRate.NextTimeToUpdate)
+	//UE_LOG(LogTemp, Warning, TEXT("Update at %f per second. Next update at %f"), SUMOToUnrealFrameRate.UpdateDeltaT, SUMOToUnrealFrameRate.NextTimeToUpdate,)
+	UE_LOG(LogTemp, Warning, TEXT("Current tick is %d. Tick between SUMO updates is %d"), SUMOToUnrealFrameRate.TickCount, SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates)
 }
 
 void ASumoDefaultPawn::UpdateSUMOByTickCount() {
-	if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.FPS) {
-		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), SUMOToUnrealFrameRate.TickCount)
+	//if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
+	//	// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), SUMOToUnrealFrameRate.TickCount)
+	//	SUMOToUnrealFrameRate.TickCount++;
+	//}
+	//else 
+	// Fix Tick() rate to update vehicle from SUMO
+	if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
+		SUMOToUnrealFrameRate.TickCount++;
+		UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
 	}
-	else if (SUMOToUnrealFrameRate.TickCount == SUMOToUnrealFrameRate.FPS) {
+	else if (SUMOToUnrealFrameRate.TickCount == SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
+		SUMOToUnrealFrameRate.TickCount = 1;
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.TickCount)
+		UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates,SUMOToUnrealFrameRate.TickCount)
 		UpdateFromSUMO();
 	}
 	else {
@@ -213,8 +214,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 		// Close socket 
 		client.close();
 		SocketIsNotClosed = false;
-
-
+		client.SetUpdateDeltaTFlag = false;
 		// Exit game in UE
 		//FGenericPlatformMisc::RequestExit(false);
 		//GetWorld()->Exec(GetWorld(), TEXT("Exit"));
@@ -263,8 +263,6 @@ bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) 
 
 
 bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehicle) {
-
-
 	// Spawn a vehicle at its start location from SUMO
 	UWorld* world = GetWorld();
 	if (world) {
@@ -274,14 +272,31 @@ bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVe
 			if (WheeledVehicleBPList.Num() > 0) {
 				UE_LOG(LogTemp, Display, TEXT("WheeledVehicle number %f"),WheeledVehicleBPList.Num())
 				// selectedClass = *VehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
-				selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
+				/*selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
 				RandomWheeledVehicle = Cast<ACustomWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
 				if (RandomWheeledVehicle) {
 					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
 						UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomWheeledVehicle->GetName())
 						return true;
 					}
+				}*/
+
+				FString RelativePath = FPaths::GameContentDir();
+				FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*RelativePath);
+
+				UE_LOG(LogTemp, Error, TEXT("%s"),*FullPath);
+
+				selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
+				RandomWheeledVehicle = Cast<AWheeledVehiclePawn>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
+				if (RandomWheeledVehicle) {
+					
+					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
+						UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomWheeledVehicle->GetName())
+						return true;
+					}
+					RandomWheeledVehicle->MoveForward(100);
 				}
+				UE_LOG(LogTemp,Warning, TEXT("Fail to spawn vehicle."))
 				return false;
 
 			}

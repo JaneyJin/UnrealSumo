@@ -17,7 +17,8 @@ class UNREALSUMO_API ACustomWheeledVehicle : public AWheeledVehicle
 	GENERATED_BODY()
 
 private_subobject:
-	
+
+
 public:
 	// Sets default values for this pawn's properties
 	//ACustomWheeledVehicle(const FObjectInitializer& ObjectInitializer);
@@ -30,14 +31,16 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float Delta) override;
 
+	void setupVehicleMovementComponent();
+
 	/**
 	 * TODO
 	 * @param
 	 * @return
 	 */
 	bool InitializeWheeledVehicle(FVehicleInformation &VehicleToSet, Client* ClientToSet, FrameRateSyn &SUMOToUnrealFrameRate);
-	/*UWheeledVehicleMovementComponent* VehicleMovementComponent;
-	UWheeledVehicleUpdateComponent* WheeledVehicleUpdateComponent = nullptr;*/
+	//UWheeledVehicleMovementComponent* VehicleMovementComponent;
+	UWheeledVehicleUpdateComponent* WheeledVehicleUpdateComponent = nullptr;
 
 	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	void MoveForward(float Val);
@@ -55,7 +58,7 @@ public:
 	//void onHandbrakeReleased();
 	//void onFootBrake(float Val);
 	//void onFootBrake(float Val);
-
+	
 
 	//void onReversePressed();
 

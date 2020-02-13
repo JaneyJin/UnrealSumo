@@ -13,10 +13,11 @@ public:
 	/// Variables modified in MatchFrameRatePerSecond()
 	// Unreal FPS and tick counter
 	int32 TickCount = 0;
-	int32 FPS = 0;
+	int32 UnrealFPS = 0;
 
 	///Variables modified in UpdateSUMOByMachineTime()
 	// Unreal calculate when to Update form SUMO
 	float NextTimeToUpdate = 0;
 	float UpdateDeltaT = 0;
+	int32 UETickBetweenSUMOUpdates = 0;
 };
