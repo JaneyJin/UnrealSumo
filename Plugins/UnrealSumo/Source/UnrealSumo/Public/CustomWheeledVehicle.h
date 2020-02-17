@@ -16,9 +16,6 @@ class UNREALSUMO_API ACustomWheeledVehicle : public AWheeledVehicle
 {
 	GENERATED_BODY()
 
-private_subobject:
-
-
 public:
 	// Sets default values for this pawn's properties
 	//ACustomWheeledVehicle(const FObjectInitializer& ObjectInitializer);

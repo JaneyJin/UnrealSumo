@@ -90,12 +90,10 @@ public:
 
 
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
-		bool AllowSpawnEgoVehicle;
+		bool SpawnEgoVehicle;
 
-	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (editcondition = "AllowSpawnEgoVehicle"))
-		TSubclassOf<AWheeledVehiclePawn> EgoWheeledVehicle;
-
-
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (editcondition = "SpawnEgoVehicle"))
+		TSubclassOf<AWheeledVehiclePawn> EgoVehicle;
 	/**
 	 * Unreal get the frame rate from SUMO and re-align Unreal time to update from SUMO
 	 * @param

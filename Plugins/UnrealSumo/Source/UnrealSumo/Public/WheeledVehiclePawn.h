@@ -15,6 +15,8 @@ class UInputComponent;
 
 class Client;
 
+class UVehiclePositionUpdateComponent;
+
 UCLASS()
 class UNREALSUMO_API AWheeledVehiclePawn : public AWheeledVehicle
 {
@@ -125,4 +127,5 @@ public:
 	FrameRateSyn UnrealFRS;
 	
 
+	UVehiclePositionUpdateComponent* VehiclePositionUpdateComponent = nullptr;
 };

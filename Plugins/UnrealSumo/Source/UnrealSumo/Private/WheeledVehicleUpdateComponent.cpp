@@ -28,5 +28,5 @@ void UWheeledVehicleUpdateComponent::TickComponent(float DeltaTime, ELevelTick T
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	UE_LOG(LogTemp, Error, TEXT("Wheeled Vehicle Component Tick"))
-	SetThrottleInput(25);
+	//SetThrottleInput(25);
 }

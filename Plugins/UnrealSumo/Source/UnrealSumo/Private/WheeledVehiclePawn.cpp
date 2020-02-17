@@ -16,7 +16,7 @@
 #include "CustomWheelFront.h"
 #include "CustomWheelRear.h"
 #include "Client.h"
-
+#include "VehiclePositionUpdateComponent.h"
 
 // For VR Headset
 //#if HMD_MODULE_INCLUDED
@@ -33,7 +33,7 @@ const FName AWheeledVehiclePawn::LookRightBinding("LookRight");
 AWheeledVehiclePawn::AWheeledVehiclePawn() {
 	client = nullptr;
 	VehicleId = "";
-
+	
 	// Car mesh
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> CarMesh(TEXT("/UnrealSumo/WheeledVehicle/Sedan/Sedan_SkelMesh"));
 	GetMesh()->SetSkeletalMesh(CarMesh.Object);
@@ -122,8 +122,8 @@ AWheeledVehiclePawn::AWheeledVehiclePawn() {
 
 	bInReverseGear = false;
 
-	AddMovementInput(GetActorForwardVector(), 1.0f);
-
+	// AddMovementInput(GetActorForwardVector(), 1.0f);
+	// VehiclePositionUpdateComponent = CreateDefaultSubobject<UVehiclePositionUpdateComponent>(FName("Update Vehicle Position Component"));
 }
 
 void AWheeledVehiclePawn::BeginPlay()
@@ -136,6 +136,14 @@ void AWheeledVehiclePawn::BeginPlay()
 //#endif // HMD_MODULE_INCLUDED
 	EnableIncarView(bEnableInCar, true);
 	UE_LOG(LogTemp, Warning, TEXT("wheeled vehicle pawn begin play"))
+	SpawnDefaultController();
+
+	if (!GetController()) {
+		Destroy();
+	}
+
+
+	UE_LOG(LogTemp, Log, TEXT("GetVehicleMovement: %s; GetVehicleMovementComponent: %s"), *GetVehicleMovement()->GetName(), *GetVehicleMovementComponent()->GetName());
 		
 }
 
@@ -186,11 +194,27 @@ void AWheeledVehiclePawn::Tick(float Delta)
 	//}
 	//GetVehicleMovementComponent()->SetTargetGear(1,true);
 	
-	MoveForward(ThrottleVal++);
-	FString VehicleName = GetName();
-	FVector ForwardV = GetActorForwardVector();
-	UE_LOG(LogTemp, Warning, TEXT("%s set speed is %d.Forward Vector: %s ; Current forward speed is %f"), *VehicleName, ThrottleVal, *ForwardV.ToString(), GetVehicleMovement()->GetForwardSpeed())
+
 	
+	
+	
+	AController* WheeledVehicleController = GetController();
+	UE_LOG(LogTemp, Warning, TEXT("Current controller is %s"), WheeledVehicleController)
+	
+
+	FVector ForwardV = GetActorForwardVector();
+	UE_LOG(LogTemp, Warning, TEXT("%s set speed is %d.Forward Vector: %s ; Current forward speed is %f; Current Gear: %d"), *GetName(), ThrottleVal, *ForwardV.ToString(), GetVehicleMovement()->GetForwardSpeed(), GetVehicleMovementComponent()->GetCurrentGear())
+
+
+		
+	if (GetVehicleMovementComponent()->GetCurrentGear() == 0) {
+		GetVehicleMovementComponent()->SetTargetGear(1, true);
+	}
+	
+
+	
+	
+	MoveForward(ThrottleVal++);
 	// GetVehicleMovementComponent()->SetSteeringInput(180);
 	
 	//UE_LOG(LogTemp, Warning, TEXT("SetThrottleInput"))

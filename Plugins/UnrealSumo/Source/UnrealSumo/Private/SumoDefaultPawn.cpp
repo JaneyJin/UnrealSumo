@@ -221,45 +221,45 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 	}
 }
 
-bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) {
-
-
-	// Spawn a vehicle at its start location from SUMO
-	UWorld* world = GetWorld();
-	if (world) {
-		SpawnPoint = SUMOVehicleInformation.VehiclePosition;
-		SpawnRotator.Yaw = DepartedVehicle.VehicleAngle.Yaw;
-		UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %s"), *SpawnPoint.ToString(), *SpawnRotator.ToString())
-			if (VehicleBPList.Num() > 0) {
-
-				selectedClass = *VehicleBPList[FMath::RandRange(0, VehicleBPList.Num() - 1)];
-				RandomVehicle = Cast<ACustomVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
-				if (RandomVehicle) {
-					if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
-						// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
-						return true;
-					}
-				}
-				return false;
-
-			}
-			else {
-				UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle because none blueprint class is selected"))
-					if (GEngine)
-					{
-						const int32 AlwaysAddKey = -1; // Add a new one instead of overwrite last message
-						static const FString ErrorMessage(TEXT("Fail to spawn vehicle because none blueprint class is selected"));
-						GEngine->AddOnScreenDebugMessage(AlwaysAddKey, 5.0f, FColor::Red, ErrorMessage);
-
-					}
-			}
-	}
-	else {
-		UE_LOG(LogTemp, Error, TEXT("Can't get world."))
-	}
-
-	return false;
-}
+//bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) {
+//
+//
+//	// Spawn a vehicle at its start location from SUMO
+//	UWorld* world = GetWorld();
+//	if (world) {
+//		SpawnPoint = SUMOVehicleInformation.VehiclePosition;
+//		SpawnRotator.Yaw = DepartedVehicle.VehicleAngle.Yaw;
+//		UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %s"), *SpawnPoint.ToString(), *SpawnRotator.ToString())
+//			if (VehicleBPList.Num() > 0) {
+//
+//				selectedClass = *VehicleBPList[FMath::RandRange(0, VehicleBPList.Num() - 1)];
+//				RandomVehicle = Cast<ACustomVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
+//				if (RandomVehicle) {
+//					if (RandomVehicle->InitializeVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
+//						// UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomVehicle->GetName())
+//						return true;
+//					}
+//				}
+//				return false;
+//
+//			}
+//			else {
+//				UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle because none blueprint class is selected"))
+//					if (GEngine)
+//					{
+//						const int32 AlwaysAddKey = -1; // Add a new one instead of overwrite last message
+//						static const FString ErrorMessage(TEXT("Fail to spawn vehicle because none blueprint class is selected"));
+//						GEngine->AddOnScreenDebugMessage(AlwaysAddKey, 5.0f, FColor::Red, ErrorMessage);
+//
+//					}
+//			}
+//	}
+//	else {
+//		UE_LOG(LogTemp, Error, TEXT("Can't get world."))
+//	}
+//
+//	return false;
+//}
 
 
 bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehicle) {
@@ -271,8 +271,8 @@ bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVe
 		UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %s"), *SpawnPoint.ToString(), *SpawnRotator.ToString())
 			if (WheeledVehicleBPList.Num() > 0) {
 				UE_LOG(LogTemp, Display, TEXT("WheeledVehicle number %f"),WheeledVehicleBPList.Num())
-				// selectedClass = *VehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
-				/*selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
+
+				/* selectedClass = *VehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
 				RandomWheeledVehicle = Cast<ACustomWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
 				if (RandomWheeledVehicle) {
 					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
@@ -281,31 +281,27 @@ bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVe
 					}
 				}*/
 
-				FString RelativePath = FPaths::GameContentDir();
-				FString FullPath = IFileManager::Get().ConvertToAbsolutePathForExternalAppForRead(*RelativePath);
-
-				UE_LOG(LogTemp, Error, TEXT("%s"),*FullPath);
-
 				selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
 				RandomWheeledVehicle = Cast<AWheeledVehiclePawn>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
+				
 				if (RandomWheeledVehicle) {
 					
 					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
-						UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomWheeledVehicle->GetName())
+						// UE_LOG(LogTemp, Warning, TEXT("Spawn wheeled vehicle %s."), *RandomWheeledVehicle->GetName())
 						return true;
 					}
-					RandomWheeledVehicle->MoveForward(100);
+					
 				}
-				UE_LOG(LogTemp,Warning, TEXT("Fail to spawn vehicle."))
+				UE_LOG(LogTemp,Warning, TEXT("Fail to spawn wheeled vehicle."))
 				return false;
 
 			}
 			else {
-				UE_LOG(LogTemp, Error, TEXT("Fail to spawn vehicle because none blueprint class is selected"))
+				UE_LOG(LogTemp, Error, TEXT("Fail to spawn wheeled vehicle because none blueprint class is selected"))
 					if (GEngine)
 					{
 						const int32 AlwaysAddKey = -1; // Add a new one instead of overwrite last message
-						static const FString ErrorMessage(TEXT("Fail to spawn vehicle because none blueprint class is selected"));
+						static const FString ErrorMessage(TEXT("Fail to spawn wheeld vehicle because none blueprint class is selected"));
 						GEngine->AddOnScreenDebugMessage(AlwaysAddKey, 5.0f, FColor::Red, ErrorMessage);
 
 					}
