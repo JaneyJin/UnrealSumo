@@ -1,7 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "SumoDefaultPawn.h"// Must at the line for #include
+#include "SumoGameMode.h"// Must at the line for #include
 #include "Misc/App.h"
 #include "GameFramework/Actor.h"
 #include "Engine.h"
@@ -10,16 +7,16 @@
 #include "WheeledVehiclePawn.h"
 #include "GameFramework/PlayerStart.h"
 
-ASumoDefaultPawn::ASumoDefaultPawn(const FObjectInitializer& ObjectInitializer)
+ASumoGameMode::ASumoGameMode(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
-	
+
 	// set default player class to customed MyPlayerController
 	// PlayerControllerClass = ASumoPlayerController::StaticClass();
 
 }
 
-void ASumoDefaultPawn::BeginPlay() {
+void ASumoGameMode::BeginPlay() {
 	Super::BeginPlay();
 
 
@@ -46,7 +43,7 @@ void ASumoDefaultPawn::BeginPlay() {
 }
 
 // Called every frame
-void ASumoDefaultPawn::Tick(float DeltaTime)
+void ASumoGameMode::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	/// Test Machine time vs Unreal Tick time
@@ -72,7 +69,7 @@ void ASumoDefaultPawn::Tick(float DeltaTime)
 
 }
 
-void ASumoDefaultPawn::MatchFrameRatePerSecond() {
+void ASumoGameMode::MatchFrameRatePerSecond() {
 	SUMODeltaT = client.simulation.getDeltaT();
 	auto UEDeltaT = FApp::GetDeltaTime();
 
@@ -115,7 +112,7 @@ void ASumoDefaultPawn::MatchFrameRatePerSecond() {
 	UE_LOG(LogTemp, Warning, TEXT("Current tick is %d. Tick between SUMO updates is %d"), SUMOToUnrealFrameRate.TickCount, SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates)
 }
 
-void ASumoDefaultPawn::UpdateSUMOByTickCount() {
+void ASumoGameMode::UpdateSUMOByTickCount() {
 	//if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
 	//	// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), SUMOToUnrealFrameRate.TickCount)
 	//	SUMOToUnrealFrameRate.TickCount++;
@@ -129,8 +126,8 @@ void ASumoDefaultPawn::UpdateSUMOByTickCount() {
 	else if (SUMOToUnrealFrameRate.TickCount == SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
 		SUMOToUnrealFrameRate.TickCount = 1;
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates,SUMOToUnrealFrameRate.TickCount)
-		UpdateFromSUMO();
+		UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
+			UpdateFromSUMO();
 	}
 	else {
 		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))
@@ -138,7 +135,7 @@ void ASumoDefaultPawn::UpdateSUMOByTickCount() {
 
 }
 
-void ASumoDefaultPawn::UpdateSUMOByMachineTime() {
+void ASumoGameMode::UpdateSUMOByMachineTime() {
 	TimeInWorld = GetWorld()->GetTimeSeconds();
 
 	if (SUMOToUnrealFrameRate.NextTimeToUpdate - TimeInWorld < 0.0001) {
@@ -151,7 +148,7 @@ void ASumoDefaultPawn::UpdateSUMOByMachineTime() {
 	}*/
 }
 
-void ASumoDefaultPawn::UpdateFromSUMO() {
+void ASumoGameMode::UpdateFromSUMO() {
 	if (client.simulation.getMinExpectedNumber() > 0) {
 		client.simulationStep();
 
@@ -225,7 +222,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 	}
 }
 
-//bool ASumoDefaultPawn::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) {
+//bool ASumoGameMode::SpawnRandomVehicle(FVehicleInformation& DepartedVehicle) {
 //
 //
 //	// Spawn a vehicle at its start location from SUMO
@@ -266,7 +263,7 @@ void ASumoDefaultPawn::UpdateFromSUMO() {
 //}
 
 
-bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehicle) {
+bool ASumoGameMode::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehicle) {
 	// Spawn a vehicle at its start location from SUMO
 	UWorld* world = GetWorld();
 	if (world) {
@@ -274,30 +271,30 @@ bool ASumoDefaultPawn::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVe
 		SpawnRotator.Yaw = DepartedVehicle.VehicleAngle.Yaw;
 		UE_LOG(LogTemp, Display, TEXT("Spawn location: %s ; SpawnVehicle rotator: %s"), *SpawnPoint.ToString(), *SpawnRotator.ToString())
 			if (WheeledVehicleBPList.Num() > 0) {
-				UE_LOG(LogTemp, Display, TEXT("WheeledVehicle number %f"),WheeledVehicleBPList.Num())
+				UE_LOG(LogTemp, Display, TEXT("WheeledVehicle number %f"), WheeledVehicleBPList.Num())
 
-				/* selectedClass = *VehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
-				RandomWheeledVehicle = Cast<ACustomWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
-				if (RandomWheeledVehicle) {
-					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
-						UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomWheeledVehicle->GetName())
-						return true;
-					}
-				}*/
+					/* selectedClass = *VehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
+					RandomWheeledVehicle = Cast<ACustomWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
+					if (RandomWheeledVehicle) {
+						if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
+							UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomWheeledVehicle->GetName())
+							return true;
+						}
+					}*/
 
-				selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
+					selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
 				RandomWheeledVehicle = Cast<AWheeledVehiclePawn>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
-				
+
 				if (RandomWheeledVehicle) {
-					
+
 					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
 						// UE_LOG(LogTemp, Warning, TEXT("Spawn wheeled vehicle %s."), *RandomWheeledVehicle->GetName())
 						return true;
 					}
-					
+
 				}
-				UE_LOG(LogTemp,Warning, TEXT("Fail to spawn wheeled vehicle."))
-				return false;
+				UE_LOG(LogTemp, Warning, TEXT("Fail to spawn wheeled vehicle."))
+					return false;
 
 			}
 			else {

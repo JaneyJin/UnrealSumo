@@ -10,8 +10,8 @@
 // #include "src/TraCIDefs.h"
 #include "VehicleInformation.h"
 #include "FrameRateSyn.h"
-#include "GameFramework/DefaultPawn.h"
-#include "SumoDefaultPawn.generated.h" // Need include at last line
+#include "GameFramework/GameMode.h"
+#include "SumoGameMode.generated.h" // Need include at last line
 
 // Predefine class
 
@@ -20,7 +20,7 @@ class ACustomWheeledVehicle;
 class AWheeledVehiclePawn;
 
 UCLASS()
-class UNREALSUMO_API ASumoDefaultPawn : public ADefaultPawn
+class ASumoGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
@@ -90,10 +90,12 @@ public:
 
 
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
-		bool SpawnEgoVehicle;
+		bool AllowSpawnEgoVehicle;
 
-	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (editcondition = "SpawnEgoVehicle"))
-		TSubclassOf<AWheeledVehiclePawn> EgoVehicle;
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (editcondition = "AllowSpawnEgoVehicle"))
+		TSubclassOf<AWheeledVehiclePawn> EgoWheeledVehicle;
+
+
 	/**
 	 * Unreal get the frame rate from SUMO and re-align Unreal time to update from SUMO
 	 * @param
@@ -139,7 +141,7 @@ public:
 
 public:
 	// Override original function defined by Unreal Engine
-	ASumoDefaultPawn(const FObjectInitializer& ObjectInitializer);
+	ASumoGameMode(const FObjectInitializer& ObjectInitializer);
 	/// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
