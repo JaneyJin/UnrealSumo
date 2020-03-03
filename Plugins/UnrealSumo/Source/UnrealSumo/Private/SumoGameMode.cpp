@@ -2,8 +2,7 @@
 #include "Misc/App.h"
 #include "GameFramework/Actor.h"
 #include "Engine.h"
-#include "CustomVehicle.h"
-#include "CustomWheeledVehicle.h"
+#include "SumoWheeledVehicle.h"
 #include "WheeledVehiclePawn.h"
 #include "GameFramework/PlayerStart.h"
 
@@ -62,10 +61,6 @@ void ASumoGameMode::Tick(float DeltaTime)
 	/*else {
 		UE_LOG(LogTemp, Warning, TEXT("Tick. Socket Close."))
 	}*/
-
-
-
-
 
 }
 
@@ -274,7 +269,7 @@ bool ASumoGameMode::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehic
 				UE_LOG(LogTemp, Display, TEXT("WheeledVehicle number %f"), WheeledVehicleBPList.Num())
 
 					/* selectedClass = *VehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
-					RandomWheeledVehicle = Cast<ACustomWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
+					RandomWheeledVehicle = Cast<ASumoWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
 					if (RandomWheeledVehicle) {
 						if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
 							UE_LOG(LogTemp, Warning, TEXT("SpawnVehicle %s."), *RandomWheeledVehicle->GetName())
@@ -283,7 +278,7 @@ bool ASumoGameMode::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehic
 					}*/
 
 					selectedClass = *WheeledVehicleBPList[FMath::RandRange(0, WheeledVehicleBPList.Num() - 1)];
-				RandomWheeledVehicle = Cast<AWheeledVehiclePawn>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
+				RandomWheeledVehicle = Cast<ASumoWheeledVehicle>(world->SpawnActor(selectedClass, &SpawnPoint, &SpawnRotator));
 
 				if (RandomWheeledVehicle) {
 

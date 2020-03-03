@@ -7,16 +7,13 @@
 
 #include "CoreMinimal.h"
 #include "Client.h" // TraCI object class
-// #include "src/TraCIDefs.h"
 #include "VehicleInformation.h"
 #include "FrameRateSyn.h"
 #include "GameFramework/GameMode.h"
 #include "SumoGameMode.generated.h" // Need include at last line
 
 // Predefine class
-
-class ACustomVehicle;
-class ACustomWheeledVehicle;
+class ASumoWheeledVehicle;
 class AWheeledVehiclePawn;
 
 UCLASS()
@@ -78,22 +75,17 @@ public:
 
 	ACustomVehicle* RandomVehicle = nullptr;*/
 
+
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
+		TArray<TSubclassOf<ASumoWheeledVehicle>> WheeledVehicleBPList;
+
+	ASumoWheeledVehicle* RandomWheeledVehicle = nullptr;
+
 	/*UPROPERTY(EditAnywhere, Category = "SUMO Setup")
-		TArray<TSubclassOf<ACustomWheeledVehicle>> WheeledVehicleBPList;
-
-	ACustomWheeledVehicle* RandomWheeledVehicle = nullptr;*/
-
-	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
-		TArray<TSubclassOf<AWheeledVehiclePawn>> WheeledVehicleBPList;
-
-	AWheeledVehiclePawn* RandomWheeledVehicle = nullptr;
-
-
-	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
 		bool AllowSpawnEgoVehicle;
 
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (editcondition = "AllowSpawnEgoVehicle"))
-		TSubclassOf<AWheeledVehiclePawn> EgoWheeledVehicle;
+		TSubclassOf<AWheeledVehiclePawn> EgoWheeledVehicle;*/
 
 
 	/**

@@ -125,7 +125,6 @@ public:
 	Client* client;
 	FString  VehicleId;
 	FrameRateSyn UnrealFRS;
-	
 
 	UVehiclePositionUpdateComponent* VehiclePositionUpdateComponent = nullptr;
 };

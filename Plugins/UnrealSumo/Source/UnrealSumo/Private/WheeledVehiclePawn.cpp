@@ -136,14 +136,10 @@ void AWheeledVehiclePawn::BeginPlay()
 //#endif // HMD_MODULE_INCLUDED
 	EnableIncarView(bEnableInCar, true);
 	UE_LOG(LogTemp, Warning, TEXT("wheeled vehicle pawn begin play"))
-	SpawnDefaultController();
-
-	if (!GetController()) {
-		Destroy();
-	}
 
 
-	UE_LOG(LogTemp, Log, TEXT("GetVehicleMovement: %s; GetVehicleMovementComponent: %s"), *GetVehicleMovement()->GetName(), *GetVehicleMovementComponent()->GetName());
+
+	
 		
 }
 
@@ -193,12 +189,9 @@ void AWheeledVehiclePawn::Tick(float Delta)
 	//	}
 	//}
 	//GetVehicleMovementComponent()->SetTargetGear(1,true);
-	
 
-	
-	
-	
-	AController* WheeledVehicleController = GetController();
+	// Test
+	/*AController* WheeledVehicleController = GetController();
 	UE_LOG(LogTemp, Warning, TEXT("Current controller is %s"), WheeledVehicleController)
 	
 
@@ -209,7 +202,7 @@ void AWheeledVehiclePawn::Tick(float Delta)
 		
 	if (GetVehicleMovementComponent()->GetCurrentGear() == 0) {
 		GetVehicleMovementComponent()->SetTargetGear(1, true);
-	}
+	}*/
 	
 
 	
