@@ -9,7 +9,7 @@
 #include "SumoWheeledVehicle.generated.h"
 
 class Client;
-
+class UInputComponent;
 /**
  * 
  */
@@ -21,6 +21,9 @@ class UNREALSUMO_API ASumoWheeledVehicle : public AWheeledVehicle
 private:
 	Client* client;
 	FString  VehicleId;
+
+	int ThrottleVal = 3;
+	int angle = 20;
 
 public:
 	ASumoWheeledVehicle();
@@ -34,7 +37,7 @@ public:
 	bool DestroyVehicle();
 	void UpdateSUMOByTickCount(float Delta);
 	void UpdateFromSUMO(float Delta);
-	
+	void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent);
 
 	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
 	FVehicleInformation UnrealVehicleInformation;

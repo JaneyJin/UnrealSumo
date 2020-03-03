@@ -136,10 +136,6 @@ void AWheeledVehiclePawn::BeginPlay()
 //#endif // HMD_MODULE_INCLUDED
 	EnableIncarView(bEnableInCar, true);
 	UE_LOG(LogTemp, Warning, TEXT("wheeled vehicle pawn begin play"))
-
-
-
-	
 		
 }
 
@@ -176,123 +172,8 @@ void AWheeledVehiclePawn::Tick(float Delta)
 		}
 	}
 	
-
-	// Check the socket is close or not
-	//if (client) {
-
-	//	if (client->SetUpdateDeltaTFlag) {
-	//		UpdateSUMOByTickCount(Delta);
-	//		
-	//	}
-	//	else {
-	//		UE_LOG(LogTemp, Error, TEXT("VehiclePositionUpdateComponent Tick. Socket Close."))
-	//	}
-	//}
-	//GetVehicleMovementComponent()->SetTargetGear(1,true);
-
-	// Test
-	/*AController* WheeledVehicleController = GetController();
-	UE_LOG(LogTemp, Warning, TEXT("Current controller is %s"), WheeledVehicleController)
-	
-
-	FVector ForwardV = GetActorForwardVector();
-	UE_LOG(LogTemp, Warning, TEXT("%s set speed is %d.Forward Vector: %s ; Current forward speed is %f; Current Gear: %d"), *GetName(), ThrottleVal, *ForwardV.ToString(), GetVehicleMovement()->GetForwardSpeed(), GetVehicleMovementComponent()->GetCurrentGear())
-
-
-		
-	if (GetVehicleMovementComponent()->GetCurrentGear() == 0) {
-		GetVehicleMovementComponent()->SetTargetGear(1, true);
-	}*/
-	
-
-	
-	
-	MoveForward(ThrottleVal++);
-	// GetVehicleMovementComponent()->SetSteeringInput(180);
-	
-	//UE_LOG(LogTemp, Warning, TEXT("SetThrottleInput"))
 }
 
-bool AWheeledVehiclePawn::InitializeWheeledVehicle(FVehicleInformation &VehicleToSet, Client* ClientToSet, FrameRateSyn &SUMOToUnrealFrameRate) {
-	
-	this->VehicleId = VehicleToSet.VehicleId;
-	this->client = ClientToSet;
-
-	if (client && VehicleId.IsEmpty()) {
-		return false; // Fail to initialize
-	}
-	return true;
-}
-
-bool AWheeledVehiclePawn::DestroyVehicle() {
-
-	if (this->Destroy()) {
-		//FString VId = VehicleId.c_str();
-		UE_LOG(LogTemp, Display, TEXT("Destroy %s success."), *VehicleId)
-		return true;
-	}
-
-	UE_LOG(LogTemp, Error, TEXT("Fail to Destroy vehicle %s."), *VehicleId);
-	return false;
-}
-
-void AWheeledVehiclePawn::UpdateSUMOByTickCount(float Delta) {
-	if (UnrealFRS.TickCount < UnrealFRS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), UnrealFRS.TickCount)
-		UnrealFRS.TickCount++;
-	}
-	else if (UnrealFRS.TickCount == UnrealFRS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d. Update from SUMo."), UnrealFRS.TickCount)
-		
-		UnrealFRS.TickCount = 1;
-		UpdateFromSUMO(Delta);
-	}
-	else {
-		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))
-	}
-
-}
-
-void AWheeledVehiclePawn::UpdateFromSUMO(float Delta) {
-	
-	std::string VID(TCHAR_TO_UTF8(*VehicleId));
-	// UE_LOG(LogTemp, Display, TEXT("GetOwner %s :: VehicleId %s "), *ObjectName, *VID);
-
-	int ArrivedNumber = client->simulation.getArrivedNumber();
-	if (ArrivedNumber != 0) {
-		std::vector<std::string> ArrivedList = client->simulation.getArrivedIDList();
-		for (std::vector<std::string>::iterator it = ArrivedList.begin(); it != ArrivedList.end(); ++it) {
-			if (*it == VID) {
-				DestroyVehicle();
-				return;
-			}
-		}
-
-	}
-	// Update location
-	/*auto vehiclepos = client->vehicle.getPosition(VID);
-	VehicleNewPosition.X = vehiclepos.x * MeterUnitConversion;
-	VehicleNewPosition.Y = vehiclepos.y * MeterUnitConversion * -1;
-	VehicleNewPosition.Z = vehiclepos.z * MeterUnitConversion;
-
-	auto vehicleangle = client->vehicle.getAngle(VID) - 90;
-	if (fabs(vehicleangle - VehicleNewRotator.Yaw) > 0.00001) {
-		VehicleNewRotator.Yaw = vehicleangle;
-	}
-	UE_LOG(LogTemp, Display, TEXT("New Location: %s ; New Rotator: %s"), *VehicleNewPosition.ToString(), *VehicleNewRotator.ToString())*/
-	
-	auto VehicleSpeed = client->vehicle.getSpeed(VID);
-	auto VehicleAngle = client->vehicle.getAngle(VID) - 90;  // 90 degrees off between UE and SUMO
-
-	 // FVector DesiredVelocity = 
-
-
-
-	// auto MyVehicle = Owner->GetName();
-	// auto Time = GetWorld()->GetTimeSeconds();
-	// UE_LOG(LogTemp, Warning, TEXT("%f: %s is at %s"), Time, *MyVehicle, *VehicleNewPosition.ToString());
-}
 
 void AWheeledVehiclePawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {

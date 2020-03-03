@@ -29,14 +29,19 @@ void ASumoGameMode::BeginPlay() {
 		}
 		UE_LOG(LogTemp, Warning, TEXT("Connect....."))
 
-			client.connect("localhost", PortNumber);
+		client.connect("localhost", PortNumber);
 		// Validate all flags and FPS 
 		SocketIsNotClosed = true;
 		MatchFrameRatePerSecond();
+		auto CurrentDefaultPawnSuperClassName = DefaultPawnClass->GetSuperClass()->GetName();
+		auto CurrentDefaultPawnOwnerName = DefaultPawnClass->GetOwnerClass()->GetName();
 
+		if (CurrentDefaultPawnOwnerName != "DefaultPawn" && CurrentDefaultPawnSuperClassName == "WheeledVehiclePawn") {
+			UE_LOG(LogTemp, Warning, TEXT("Ego Vehicle: %s"), *DefaultPawnClass->GetName())
+		}
 	}
 	catch (tcpip::SocketException& e) {
-		UE_LOG(LogTemp, Error, TEXT("#Error while connecting: %s"), e.what())
+		UE_LOG(LogTemp, Error, TEXT("#Error while connecting: %s.\n"), e.what())
 	}
 
 }

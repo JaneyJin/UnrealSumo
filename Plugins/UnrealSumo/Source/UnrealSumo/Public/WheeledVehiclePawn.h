@@ -76,7 +76,7 @@ protected:
 		FText GearDisplayString;
 
 	int count = 0;
-	int ThrottleVal = 10;
+	
 
 public:
 
@@ -112,13 +112,6 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float Delta) override;
 
-
-
-	// Update vehicle information
-	bool InitializeWheeledVehicle(FVehicleInformation &VehicleToSet, Client* ClientToSet, FrameRateSyn &SUMOToUnrealFrameRate);
-	bool DestroyVehicle();
-	void UpdateSUMOByTickCount(float Delta);
-	void UpdateFromSUMO(float Delta);
 	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
 	FVehicleInformation UnrealVehicleInformation;
 

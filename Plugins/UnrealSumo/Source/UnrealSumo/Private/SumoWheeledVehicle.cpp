@@ -19,6 +19,9 @@ void ASumoWheeledVehicle::BeginPlay()
 	if (!GetController()) {
 		Destroy();
 	}
+	else {
+		MoveForward(ThrottleVal);
+	}
 	UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle beginplay"));
 	UE_LOG(LogTemp, Log, TEXT("GetVehicleMovement: %s; GetVehicleMovementComponent: %s"), *GetVehicleMovement()->GetName(), *GetVehicleMovementComponent()->GetName());
 }
@@ -28,8 +31,10 @@ void ASumoWheeledVehicle::Tick(float Delta)
 	Super::Tick(Delta);
 	// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle tick"))
 
-	// MoveForward(10);
-	UpdateSUMOByTickCount(Delta);
+	if (GetController()) {
+		GetVehicleMovementComponent()->SetSteeringInput(10);
+		UpdateSUMOByTickCount(Delta);
+	}
 
 }
 
@@ -82,6 +87,10 @@ void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
 	auto VehicleSpeed = client->vehicle.getSpeed(VID);
 	auto VehicleAngle = client->vehicle.getAngle(VID) - 90;  // 90 degrees off between UE and SUMO
 
+	
+		
+	
+
 	 // FVector DesiredVelocity = 
 
 	// auto MyVehicle = Owner->GetName();
@@ -130,4 +139,23 @@ void ASumoWheeledVehicle::OnHandbrakePressed()
 void ASumoWheeledVehicle::OnHandbrakeReleased()
 {
 	GetVehicleMovementComponent()->SetHandbrakeInput(false);
+}
+
+void ASumoWheeledVehicle::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	// set up gameplay key bindings
+	check(PlayerInputComponent);
+
+	PlayerInputComponent->BindAxis("MoveForward", this, &ASumoWheeledVehicle::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ASumoWheeledVehicle::MoveRight);
+	PlayerInputComponent->BindAxis("LookUp");
+	PlayerInputComponent->BindAxis("LookRight");
+
+	PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &ASumoWheeledVehicle::OnHandbrakePressed);
+	PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &ASumoWheeledVehicle::OnHandbrakeReleased);
+	// PlayerInputComponent->BindAction("SwitchCamera", IE_Pressed, this, &ASumoWheeledVehicle::OnToggleCamera);
+
+	// PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ASumoWheeledVehicle::OnResetVR);
 }
