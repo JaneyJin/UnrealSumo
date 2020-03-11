@@ -3,6 +3,8 @@
 
 #include "SumoWheeledVehicle.h"
 #include "Client.h"
+#include "Components/InputComponent.h"
+#include "Engine/SkeletalMesh.h"
 #include "WheeledVehicleMovementComponent4W.h"
 
 ASumoWheeledVehicle::ASumoWheeledVehicle() {
@@ -19,9 +21,9 @@ void ASumoWheeledVehicle::BeginPlay()
 	if (!GetController()) {
 		Destroy();
 	}
-	else {
+	/*else {
 		MoveForward(ThrottleVal);
-	}
+	}*/
 	UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle beginplay"));
 	UE_LOG(LogTemp, Log, TEXT("GetVehicleMovement: %s; GetVehicleMovementComponent: %s"), *GetVehicleMovement()->GetName(), *GetVehicleMovementComponent()->GetName());
 }
@@ -32,7 +34,7 @@ void ASumoWheeledVehicle::Tick(float Delta)
 	// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle tick"))
 
 	if (GetController()) {
-		GetVehicleMovementComponent()->SetSteeringInput(10);
+		//GetVehicleMovementComponent()->SetSteeringInput(10);
 		UpdateSUMOByTickCount(Delta);
 	}
 
@@ -72,8 +74,9 @@ void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
 		}
 
 	}
+	
 	// Update location
-	/*auto vehiclepos = client->vehicle.getPosition(VID);
+	auto vehiclepos = client->vehicle.getPosition(VID);
 	VehicleNewPosition.X = vehiclepos.x * MeterUnitConversion;
 	VehicleNewPosition.Y = vehiclepos.y * MeterUnitConversion * -1;
 	VehicleNewPosition.Z = vehiclepos.z * MeterUnitConversion;
@@ -82,17 +85,24 @@ void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
 	if (fabs(vehicleangle - VehicleNewRotator.Yaw) > 0.00001) {
 		VehicleNewRotator.Yaw = vehicleangle;
 	}
-	UE_LOG(LogTemp, Display, TEXT("New Location: %s ; New Rotator: %s"), *VehicleNewPosition.ToString(), *VehicleNewRotator.ToString())*/
+	// UE_LOG(LogTemp, Display, TEXT("New Location: %s ; New Rotator: %s"), *VehicleNewPosition.ToString(), *VehicleNewRotator.ToString())
 
-	auto VehicleSpeed = client->vehicle.getSpeed(VID);
-	auto VehicleAngle = client->vehicle.getAngle(VID) - 90;  // 90 degrees off between UE and SUMO
-
+	FHitResult HitResult;
+	K2_SetActorLocationAndRotation(VehicleNewPosition, VehicleNewRotator, false, HitResult, true);
 	
-		
-	
+	//if (SetActorLocationAndRotation(VehicleNewPosition, VehicleNewRotator, false, &HitResult) == false) {
 
-	 // FVector DesiredVelocity = 
+	//	// If the set function returned false something is blocking at that location. We can interrogate this result to determine details of this  
+	//	// @See FHitResult for more information  
+	//	if (HitResult.GetActor() != nullptr)
+	//	{
+	//		UE_LOG(LogTemp, Error, TEXT("Cannot move object to location, blocked by %s"), *HitResult.GetActor()->GetName());
+	//	}
 
+	//}
+
+	// auto VehicleSpeed = client->vehicle.getSpeed(VID);
+	//auto VehicleAngle = client->vehicle.getAngle(VID) - 90;  // 90 degrees off between UE and SUMO
 	// auto MyVehicle = Owner->GetName();
 	// auto Time = GetWorld()->GetTimeSeconds();
 	// UE_LOG(LogTemp, Warning, TEXT("%f: %s is at %s"), Time, *MyVehicle, *VehicleNewPosition.ToString());

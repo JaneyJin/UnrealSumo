@@ -6,6 +6,8 @@
 #include "WheeledVehicle.h"
 #include "FrameRateSyn.h"
 #include "VehicleInformation.h"
+#include <string>
+#include <vector>
 #include "SumoWheeledVehicle.generated.h"
 
 class Client;
@@ -42,5 +44,11 @@ public:
 	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
 	FVehicleInformation UnrealVehicleInformation;
 	FrameRateSyn UnrealFRS;
+
+	// UpdateFromSUMO()
+	FVector VehicleNewPosition = FVector(0, 0, 0);
+	int32 MeterUnitConversion = 100; // Convert from meters(SUMO) to centimeter(Unreal)
+	std::vector<std::string> ArrivedList;
+	FRotator VehicleNewRotator = FRotator(0, 0, 0);
 
 };
