@@ -88,18 +88,15 @@ void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
 	// UE_LOG(LogTemp, Display, TEXT("New Location: %s ; New Rotator: %s"), *VehicleNewPosition.ToString(), *VehicleNewRotator.ToString())
 
 	FHitResult HitResult;
-	K2_SetActorLocationAndRotation(VehicleNewPosition, VehicleNewRotator, false, HitResult, true);
+	if (K2_SetActorLocationAndRotation(VehicleNewPosition, VehicleNewRotator, false, HitResult, true) == false) {
+		// If the set function returned false something is blocking at that location. We can interrogate this result to determine details of this  
+		// @See FHitResult for more information  
+		if (HitResult.GetActor() != nullptr)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Cannot move object to location, blocked by %s"), *HitResult.GetActor()->GetName());
+		}
+	}
 	
-	//if (SetActorLocationAndRotation(VehicleNewPosition, VehicleNewRotator, false, &HitResult) == false) {
-
-	//	// If the set function returned false something is blocking at that location. We can interrogate this result to determine details of this  
-	//	// @See FHitResult for more information  
-	//	if (HitResult.GetActor() != nullptr)
-	//	{
-	//		UE_LOG(LogTemp, Error, TEXT("Cannot move object to location, blocked by %s"), *HitResult.GetActor()->GetName());
-	//	}
-
-	//}
 
 	// auto VehicleSpeed = client->vehicle.getSpeed(VID);
 	//auto VehicleAngle = client->vehicle.getAngle(VID) - 90;  // 90 degrees off between UE and SUMO

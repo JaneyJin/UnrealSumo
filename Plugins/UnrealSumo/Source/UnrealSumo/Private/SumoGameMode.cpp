@@ -5,6 +5,8 @@
 #include "SumoWheeledVehicle.h"
 #include "WheeledVehiclePawn.h"
 #include "GameFramework/PlayerStart.h"
+#include <algorithm>    // std::find
+#include <vector> 
 
 ASumoGameMode::ASumoGameMode(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -33,12 +35,11 @@ void ASumoGameMode::BeginPlay() {
 		// Validate all flags and FPS 
 		SocketIsNotClosed = true;
 		MatchFrameRatePerSecond();
-		auto CurrentDefaultPawnSuperClassName = DefaultPawnClass->GetSuperClass()->GetName();
-		auto CurrentDefaultPawnOwnerName = DefaultPawnClass->GetOwnerClass()->GetName();
 
-		if (CurrentDefaultPawnOwnerName != "DefaultPawn" && CurrentDefaultPawnSuperClassName == "WheeledVehiclePawn") {
-			UE_LOG(LogTemp, Warning, TEXT("Ego Vehicle: %s"), *DefaultPawnClass->GetName())
+		if (!SetupEgoVehicle()) {
+			UE_LOG(LogTemp, Error, TEXT("Fail to set up EGOVehcile"))
 		}
+		
 	}
 	catch (tcpip::SocketException& e) {
 		UE_LOG(LogTemp, Error, TEXT("#Error while connecting: %s.\n"), e.what())
@@ -62,6 +63,8 @@ void ASumoGameMode::Tick(float DeltaTime)
 			UpdateSUMOByTickCount();
 			//UpdateSUMOByMachineTime();
 		}
+
+		
 	}
 	/*else {
 		UE_LOG(LogTemp, Warning, TEXT("Tick. Socket Close."))
@@ -112,6 +115,45 @@ void ASumoGameMode::MatchFrameRatePerSecond() {
 	UE_LOG(LogTemp, Warning, TEXT("Current tick is %d. Tick between SUMO updates is %d"), SUMOToUnrealFrameRate.TickCount, SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates)
 }
 
+bool ASumoGameMode::SetupEgoVehicle() {
+	auto CurrentDefaultPawnSuperClassName = DefaultPawnClass->GetSuperClass()->GetName();
+	auto CurrentDefaultPawnOwnerName = DefaultPawnClass->GetOwnerClass()->GetName();
+	if (CurrentDefaultPawnOwnerName != "DefaultPawn" && CurrentDefaultPawnSuperClassName == "WheeledVehiclePawn") {
+
+		// UE_LOG(LogTemp, Warning, TEXT("Ego Vehicle: %s"), *DefaultPawnClass->GetName())
+		// EgoWheeledVehicleFlag = true;
+		UE_LOG(LogTemp, Warning, TEXT("DefaultPawnClass: %s"), &DefaultPawnClass)
+			auto test = DefaultPawnClass;
+		UE_LOG(LogTemp, Warning, TEXT("DefaultPawnClass: %s"), &test)
+		test2 = DefaultPawnClass->GetClass();
+		
+		// AWheeledVehiclePawn t = Cast<AWheeledVehiclePawn>(DefaultPawnClass->GetClass());
+
+		
+		UE_LOG(LogTemp, Warning, TEXT("haha"))
+		// EgoWheeledVehicle(*test);
+
+		if (EgoWheeledVehicle) {
+			EgoWheeledVehicle->SetWheeledVehicleID(DefaultPawnClass->GetName());
+
+			auto EgoWheeledVehicleInformation = EgoWheeledVehicle->GetEgoWheeledVehicleInformation();
+			EgoWheeledVehicleInformation.print();
+
+			auto RouteIDList = client.route.getIDList();
+			
+			std::string StartRouteId = RouteId.IsEmpty() || std::find(RouteIDList.begin(), RouteIDList.end(), TCHAR_TO_UTF8(*RouteId)) == RouteIDList.end() ? RouteIDList[0] : TCHAR_TO_UTF8(*RouteId);
+			client.vehicle.add(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), StartRouteId);
+			//client.vehicle.moveToXY(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId),);
+			
+			return true;
+		}
+
+	}
+
+	return false;
+}
+
+
 void ASumoGameMode::UpdateSUMOByTickCount() {
 	//if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
 	//	// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), SUMOToUnrealFrameRate.TickCount)
@@ -121,13 +163,15 @@ void ASumoGameMode::UpdateSUMOByTickCount() {
 	// Fix Tick() rate to update vehicle from SUMO
 	if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
 		SUMOToUnrealFrameRate.TickCount++;
-		UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
+		// UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
 	}
 	else if (SUMOToUnrealFrameRate.TickCount == SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
 		SUMOToUnrealFrameRate.TickCount = 1;
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
-			UpdateFromSUMO();
+		// UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
+		UpdateFromSUMO();
+		UpdateToSUMO();
+
 	}
 	else {
 		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))
@@ -205,8 +249,6 @@ void ASumoGameMode::UpdateFromSUMO() {
 
 			}
 
-
-
 		}
 
 
@@ -219,6 +261,13 @@ void ASumoGameMode::UpdateFromSUMO() {
 		// Exit game in UE
 		//FGenericPlatformMisc::RequestExit(false);
 		//GetWorld()->Exec(GetWorld(), TEXT("Exit"));
+	}
+}
+
+
+void ASumoGameMode::UpdateToSUMO() {
+	if (EgoWheeledVehicle) {
+		EgoWheeledVehicle->UpdateEgoVehicleToSUMO();
 	}
 }
 
@@ -288,7 +337,7 @@ bool ASumoGameMode::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehic
 				if (RandomWheeledVehicle) {
 
 					if (RandomWheeledVehicle->InitializeWheeledVehicle(SUMOVehicleInformation, &client, SUMOToUnrealFrameRate)) {
-						// UE_LOG(LogTemp, Warning, TEXT("Spawn wheeled vehicle %s."), *RandomWheeledVehicle->GetName())
+						UE_LOG(LogTemp, Warning, TEXT("Spawn wheeled vehicle %s."), *RandomWheeledVehicle->GetName())
 						return true;
 					}
 
@@ -314,3 +363,20 @@ bool ASumoGameMode::SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehic
 
 	return false;
 }
+
+
+#if WITH_EDITOR
+bool ASumoGameMode::CanEditChange(const UProperty* InProperty) const
+{
+	const bool ParentVal = Super::CanEditChange(InProperty);
+
+	// Can we edit flower color?
+	if (InProperty->GetFName() == GET_MEMBER_NAME_CHECKED(ASumoGameMode, RouteId))
+	{
+		auto CurrentDefaultPawnSuperClassName = DefaultPawnClass->GetSuperClass()->GetName();
+		return  CurrentDefaultPawnSuperClassName == "WheeledVehiclePawn";
+	}
+
+	return ParentVal;
+}
+#endif

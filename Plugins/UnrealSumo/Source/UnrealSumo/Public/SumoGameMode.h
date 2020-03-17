@@ -10,11 +10,14 @@
 #include "VehicleInformation.h"
 #include "FrameRateSyn.h"
 #include "GameFramework/GameMode.h"
+
+#include "WheeledVehiclePawn.h"
 #include "SumoGameMode.generated.h" // Need include at last line
 
 // Predefine class
 class ASumoWheeledVehicle;
 class AWheeledVehiclePawn;
+
 
 UCLASS()
 class ASumoGameMode : public AGameMode
@@ -24,8 +27,7 @@ class ASumoGameMode : public AGameMode
 
 public:
 	/// Variables modified in BeginPlay()
-	// Port number for connection. If the port number is empty, the UE will set to the DefaultPortNumber
-	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (ToolTip = "Port number for connection with SUMO server. \nIf the port number is empty or invalid, the UE will set to the default port number 24000"))
 		int32 PortNumber;
 	// Creation of an Client instance
 	// Instantiate a socket and connect to SUMO server
@@ -76,16 +78,30 @@ public:
 	ACustomVehicle* RandomVehicle = nullptr;*/
 
 
-	UPROPERTY(EditAnywhere, Category = "SUMO Setup")
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (ToolTip = "Wheeled vehicle with custom SumoWheeledVehicle class"))
 		TArray<TSubclassOf<ASumoWheeledVehicle>> WheeledVehicleBPList;
 
 	ASumoWheeledVehicle* RandomWheeledVehicle = nullptr;
 
+	AWheeledVehiclePawn* EgoWheeledVehicle = nullptr;
+
+	
+	UClass* test2;
 	/*UPROPERTY(EditAnywhere, Category = "SUMO Setup")
 		bool AllowSpawnEgoVehicle;
 
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (editcondition = "AllowSpawnEgoVehicle"))
 		TSubclassOf<AWheeledVehiclePawn> EgoWheeledVehicle;*/
+
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup| EgoVehicle Setup", meta = (ToolTip = "Match the route id specify in *.rou.xml. \nExample: <route id=\"route0\" ...> "))
+		FString RouteId;
+	
+	
+
+	// Note CanEditChange is only available when compiling with the editor. Must add this or your builds might not work!
+#if WITH_EDITOR
+	virtual bool CanEditChange(const UProperty* InProperty) const override;
+#endif
 
 
 	/**
@@ -94,6 +110,9 @@ public:
 	 * @return
 	 */
 	void MatchFrameRatePerSecond();
+
+
+	bool SetupEgoVehicle();
 
 	/**
 	 * Update Unreal from SUMO based on Tick counter
@@ -115,6 +134,8 @@ public:
 	 * @return
 	 */
 	void UpdateFromSUMO();
+
+	void UpdateToSUMO();
 
 	/**
 	 * Spawn random vehicle from the VehicleBPList in SumoDefaultPawn_BP in the UE
@@ -139,6 +160,7 @@ public:
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
 
 
 };

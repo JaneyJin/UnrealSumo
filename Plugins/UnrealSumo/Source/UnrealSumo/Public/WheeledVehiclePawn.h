@@ -77,7 +77,8 @@ protected:
 
 	int count = 0;
 	
-
+	FVehicleInformation EgoWheeledVehicle;
+	
 public:
 
 	static const FName LookUpBinding;
@@ -112,6 +113,10 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float Delta) override;
 
+	FVehicleInformation UpdateEgoVehicleToSUMO();
+
+	void SetWheeledVehicleID(FString DefaultPawnName);
+
 	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
 	FVehicleInformation UnrealVehicleInformation;
 
@@ -120,4 +125,8 @@ public:
 	FrameRateSyn UnrealFRS;
 
 	UVehiclePositionUpdateComponent* VehiclePositionUpdateComponent = nullptr;
+
+	FVehicleInformation GetEgoWheeledVehicleInformation() { return EgoWheeledVehicle; }
+
+
 };

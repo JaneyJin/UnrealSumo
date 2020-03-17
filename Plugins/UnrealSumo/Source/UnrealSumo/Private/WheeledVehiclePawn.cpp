@@ -139,6 +139,19 @@ void AWheeledVehiclePawn::BeginPlay()
 		
 }
 
+void AWheeledVehiclePawn::SetWheeledVehicleID(FString DefaultPawnName)
+{
+	EgoWheeledVehicle.VehicleId = DefaultPawnName;
+}
+
+FVehicleInformation AWheeledVehiclePawn::UpdateEgoVehicleToSUMO() {
+	EgoWheeledVehicle.VehicleSpeed = GetVehicleMovementComponent()->GetForwardSpeed();
+	EgoWheeledVehicle.VehiclePosition = GetOwner()->GetActorLocation();
+	EgoWheeledVehicle.VehicleAngle = GetOwner()->GetActorRotation();
+	EgoWheeledVehicle.print();
+	return EgoWheeledVehicle;
+}
+
 void AWheeledVehiclePawn::Tick(float Delta)
 {
 	Super::Tick(Delta);
@@ -171,7 +184,7 @@ void AWheeledVehiclePawn::Tick(float Delta)
 			InternalCamera->RelativeRotation = HeadRotation;
 		}
 	}
-	
+
 }
 
 
