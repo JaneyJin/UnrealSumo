@@ -42,15 +42,15 @@ void ASumoWheeledVehicle::Tick(float Delta)
 
 void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
 	if (UnrealFRS.TickCount < UnrealFRS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), UnrealFRS.TickCount)
+		// UE_LOG(LogTemp, Display, TEXT("SumoWheeledVehicle -> Tick() %d"), UnrealFRS.TickCount)
 		UnrealFRS.TickCount++;
 	}
 	else if (UnrealFRS.TickCount == UnrealFRS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		UE_LOG(LogTemp, Warning, TEXT("WheeledVehicle Tick() %d. Update from SUMo."), UnrealFRS.TickCount)
+		
+		// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle -> Tick() %d. Update from SUMo."), UnrealFRS.TickCount)
 
-		UnrealFRS.TickCount = 1;
 		UpdateFromSUMO(Delta);
+		UnrealFRS.TickCount = 1;
 	}
 	else {
 		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))

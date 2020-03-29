@@ -18,6 +18,7 @@
 #include "Client.h"
 #include "VehiclePositionUpdateComponent.h"
 
+
 // For VR Headset
 //#if HMD_MODULE_INCLUDED
 //	#include "IHeadMountedDisplay.h"
@@ -142,14 +143,27 @@ void AWheeledVehiclePawn::BeginPlay()
 void AWheeledVehiclePawn::SetWheeledVehicleID(FString DefaultPawnName)
 {
 	EgoWheeledVehicle.VehicleId = DefaultPawnName;
+	EgoWheeledVehicle.VehicleSpeed = 1;
 }
 
 FVehicleInformation AWheeledVehiclePawn::UpdateEgoVehicleToSUMO() {
-	EgoWheeledVehicle.VehicleSpeed = GetVehicleMovementComponent()->GetForwardSpeed();
-	EgoWheeledVehicle.VehiclePosition = GetOwner()->GetActorLocation();
-	EgoWheeledVehicle.VehicleAngle = GetOwner()->GetActorRotation();
-	EgoWheeledVehicle.print();
-	return EgoWheeledVehicle;
+	if (GetVehicleMovementComponent()) {
+
+
+		UE_LOG(LogTemp, Warning, TEXT("TTT"))
+	    float speed = GetVehicleMovement()->GetForwardSpeed();
+
+		EgoWheeledVehicle.VehicleSpeed = (double)(speed);
+
+	}
+
+	// EgoWheeledVehicle.VehicleSpeed = (double)();
+	
+	// EgoWheeledVehicle.VehiclePosition = GetWorld()->GetFirstPlayerController()->GetPawn()->GetActorLocation();
+	
+	// EgoWheeledVehicle.VehicleAngle = ;
+	// EgoWheeledVehicle.print();
+	return GetEgoWheeledVehicleInformation();
 }
 
 void AWheeledVehiclePawn::Tick(float Delta)

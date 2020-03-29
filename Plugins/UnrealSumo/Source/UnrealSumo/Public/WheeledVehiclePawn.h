@@ -80,7 +80,7 @@ protected:
 	FVehicleInformation EgoWheeledVehicle;
 	
 public:
-
+	
 	static const FName LookUpBinding;
 	static const FName LookRightBinding;
 

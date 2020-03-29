@@ -9,8 +9,10 @@ struct FrameRateSyn
 
 public:
 
+	bool UpdateByMachineTime = false; // 
 
 	/// Variables modified in MatchFrameRatePerSecond()
+	int32 SUMOFPS = 0;
 	// Unreal FPS and tick counter
 	int32 TickCount = 0;
 	int32 UnrealFPS = 0;
