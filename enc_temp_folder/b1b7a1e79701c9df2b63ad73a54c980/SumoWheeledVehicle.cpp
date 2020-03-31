@@ -64,6 +64,8 @@ void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
 void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
 
 
+	
+
 	std::string VID(TCHAR_TO_UTF8(*VehicleId));
 	// UE_LOG(LogTemp, Display, TEXT("GetOwner %s :: VehicleId %s "), *ObjectName, *VID);
 

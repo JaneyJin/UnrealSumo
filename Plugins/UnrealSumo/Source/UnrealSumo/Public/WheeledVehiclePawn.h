@@ -12,9 +12,8 @@ class UCameraComponent;
 class USpringArmComponent;
 class UTextRenderComponent;
 class UInputComponent;
-
+class UBoxComponent;
 class Client;
-
 class UVehiclePositionUpdateComponent;
 
 UCLASS()
@@ -77,7 +76,7 @@ protected:
 
 	int count = 0;
 	
-	FVehicleInformation EgoWheeledVehicle;
+	
 	
 public:
 	
@@ -113,20 +112,71 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float Delta) override;
 
-	FVehicleInformation UpdateEgoVehicleToSUMO();
 
-	void SetWheeledVehicleID(FString DefaultPawnName);
 
-	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
-	FVehicleInformation UnrealVehicleInformation;
-
-	Client* client;
+	
+	
 	FString  VehicleId;
 	FrameRateSyn UnrealFRS;
 
 	UVehiclePositionUpdateComponent* VehiclePositionUpdateComponent = nullptr;
 
-	FVehicleInformation GetEgoWheeledVehicleInformation() { return EgoWheeledVehicle; }
+private:
+
+	/// Transform of the vehicle. Location is shifted so it matches center of the
+	/// vehicle bounds rather than the actor's location.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+		FTransform GetVehicleTransform() const
+	{
+		return GetActorTransform();
+	}
+
+	/// Forward speed in cm/s. Might be negative if goes backwards.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+		float GetVehicleForwardSpeed() const;
+
+	/// Orientation vector of the vehicle, pointing forward.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+		FVector GetVehicleOrientation() const;
+
+	/// Active gear of the vehicle.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+		int32 GetVehicleCurrentGear() const;
+
+	/// Transform of the vehicle's bounding box relative to the vehicle.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+		FTransform GetVehicleBoundingBoxTransform() const;
+
+	/// Extent of the vehicle's bounding box.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+		FVector GetVehicleBoundingBoxExtent() const;
+
+	/// Get vehicle's bounding box component.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+	UBoxComponent *GetVehicleBoundingBox() const
+	{
+		return VehicleBounds;
+	}
+
+	/// Get the maximum angle at which the front wheel can steer.
+	UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
+		float GetMaximumSteerAngle() const;
 
 
+	
+
+	UPROPERTY(Category = "Unreal Ego Wheeled Vehicle", EditAnywhere)
+		UBoxComponent *VehicleBounds;
+
+public:
+	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
+	FVehicleInformation EgoWheeledVehicleInformation;
+	Client* client;
+	float GetEgoWheeledVehicleSpeed() { return EgoWheeledVehicleInformation.VehicleSpeed; }
+	// void GetEgoWheeledVehicleInformation(FVehicleInformation &v) { v = EgoWheeledVehicleInformation; }
+
+	void UpdateSpeedToSumo();
+
+	void SetupSocketForEgoWheeledVehicle(FString VehicleId, Client* ClientToSet);
+	
 };

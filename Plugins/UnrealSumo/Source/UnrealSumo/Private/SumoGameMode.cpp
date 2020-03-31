@@ -109,19 +109,20 @@ bool ASumoGameMode::SetupEgoVehicle() {
 		EgoWheeledVehicle = (AWheeledVehiclePawn*)DefaultPawnClass->GetClass();
 	
 		if (EgoWheeledVehicle) {
-			EgoWheeledVehicle->SetWheeledVehicleID(DefaultPawnClass->GetName());
-
-			EgoWheeledVehicleInformation = EgoWheeledVehicle->GetEgoWheeledVehicleInformation();
-			EgoWheeledVehicleInformation.print();
-
-			auto RouteIDList = client.route.getIDList();
 			
+			auto RouteIDList = client.route.getIDList();
+			EgoWheeledVehicleInformation.VehicleId = CurrentDefaultPawnOwnerName;
 			std::string StartRouteId = RouteId.IsEmpty() || std::find(RouteIDList.begin(), RouteIDList.end(), TCHAR_TO_UTF8(*RouteId)) == RouteIDList.end() ? RouteIDList[0] : TCHAR_TO_UTF8(*RouteId);
 			client.vehicle.add(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), StartRouteId);
 			auto EgoWheeledVehicleStartPosition = client.vehicle.getPosition(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId));
 			EgoWheeledVehicleInformation.VehiclePosition.X = EgoWheeledVehicleStartPosition.x;
 			EgoWheeledVehicleInformation.VehiclePosition.Y = EgoWheeledVehicleStartPosition.y;
 			EgoWheeledVehicleInformation.VehiclePosition.Z = EgoWheeledVehicleStartPosition.z;
+
+			EgoWheeledVehicleInformation.print();
+
+			
+			EgoWheeledVehicle->SetupSocketForEgoWheeledVehicle(EgoWheeledVehicleInformation.VehicleId, &client);
 			return true;
 		}
 
@@ -176,7 +177,6 @@ void ASumoGameMode::UpdateVehicleFromSUMO() {
 
 		DepartedNumber = client.simulation.getDepartedNumber();
 		if (DepartedNumber != 0) {
-
 			DepartedList = client.simulation.getDepartedIDList();
 
 			// for (unsigned int i = 0; i < departedList.size(); i++) {
@@ -185,6 +185,11 @@ void ASumoGameMode::UpdateVehicleFromSUMO() {
 				/// Retrieve vehicle id, speed, positon and color from SUMO 
 				// Covert std::string into FString
 				DepartedVehicleId = DepartedList[i];
+
+				if (DepartedVehicleId == TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)) {
+					continue;
+				}
+
 				SUMOVehicleInformation.VehicleId = DepartedVehicleId.c_str();
 
 				// Assign speed
@@ -240,8 +245,15 @@ void ASumoGameMode::UpdateVehicleFromSUMO() {
 
 void ASumoGameMode::UpdateEgoWheeledVehicleToSUMO() {
 	if (EgoWheeledVehicle) {
-		 EgoWheeledVehicleInformation = EgoWheeledVehicle->UpdateEgoVehicleToSUMO();
-		 // EgoWheeledVehicleInformation.print();
+
+		EgoWheeledVehicle->UpdateSpeedToSumo();
+		//float test = EgoWheeledVehicle->GetEgoWheeledVehicleSpeed();
+		//EgoWheeledVehicleInformation.VehicleSpeed = test;
+		//UE_LOG(LogTemp, Error, TEXT("UnrealSpeed: %f"), test)
+		//float SUMOVehicleSpeed = test / 100; // Transform UNREAL cm/s to SUMO m/s
+		//client.vehicle.setSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), SUMOVehicleSpeed);
+
+		//UE_LOG(LogTemp, Error, TEXT("Feedback speed from SUMO: %f"), client.vehicle.getSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)))
 	}
 }
 
