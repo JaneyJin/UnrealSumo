@@ -24,8 +24,8 @@ void ASumoWheeledVehicle::BeginPlay()
 	/*else {
 		MoveForward(ThrottleVal);
 	}*/
-	// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle beginplay"));
-	// UE_LOG(LogTemp, Log, TEXT("GetVehicleMovement: %s; GetVehicleMovementComponent: %s"), *GetVehicleMovement()->GetName(), *GetVehicleMovementComponent()->GetName());
+	UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle beginplay"));
+	UE_LOG(LogTemp, Log, TEXT("GetVehicleMovement: %s; GetVehicleMovementComponent: %s"), *GetVehicleMovement()->GetName(), *GetVehicleMovementComponent()->GetName());
 }
 
 void ASumoWheeledVehicle::Tick(float Delta)
@@ -36,15 +36,11 @@ void ASumoWheeledVehicle::Tick(float Delta)
 	if (GetController()) {
 		//GetVehicleMovementComponent()->SetSteeringInput(10);
 		UpdateSUMOByTickCount(Delta);
-
-		// UE_LOG(LogTemp, Warning, TEXT("Current controller is %s"), GetController());
-		// UE_LOG(LogTemp, Warning, TEXT("%s set speed is not set. Forward Vector: %s ; Current forward speed is %f; Current Gear: %d"), *GetName(), *GetActorForwardVector().ToString(), GetVehicleMovement()->GetForwardSpeed(),GetVehicleMovement()->GetCurrentGear())
 	}
 	
 }
 
 void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
-<<<<<<< HEAD
 	if (UnrealFPS.TickCount < UnrealFPS.UETickBetweenSUMOUpdates) {
 		// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), UnrealFPS.TickCount)
 		UnrealFPS.TickCount++;
@@ -54,18 +50,7 @@ void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
 		// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle -> WheeledVehicle Tick() %d. Update from SUMo."), UnrealFPS.TickCount)
 
 		UnrealFPS.TickCount = 1;
-=======
-	if (UnrealFRS.TickCount < UnrealFRS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Display, TEXT("SumoWheeledVehicle -> Tick() %d"), UnrealFRS.TickCount)
-		UnrealFRS.TickCount++;
-	}
-	else if (UnrealFRS.TickCount == UnrealFRS.UETickBetweenSUMOUpdates) {
-		
-		// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle -> Tick() %d. Update from SUMo."), UnrealFRS.TickCount)
-
->>>>>>> master
 		UpdateFromSUMO(Delta);
-		UnrealFRS.TickCount = 1;
 	}
 	else {
 		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))
@@ -74,7 +59,6 @@ void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
 }
 
 void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
-
 
 	std::string VID(TCHAR_TO_UTF8(*VehicleId));
 	// UE_LOG(LogTemp, Display, TEXT("GetOwner %s :: VehicleId %s "), *ObjectName, *VID);

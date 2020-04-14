@@ -17,12 +17,9 @@ public:
 
 
 	void print() {
-<<<<<<< HEAD
-		UE_LOG(LogTemp,Warning,TEXT("VehicleID: %s; VehiclePosition: %s; VehicleSpeed: %f; VehicleAngle: %s"), *VehicleId, *VehiclePosition.ToString(), VehicleSpeed, *VehicleAngle.ToString());
-=======
-		UE_LOG(LogTemp,Warning,TEXT("VehicleID: %s; VehiclePosition: %s; VehicleSpeed: %f; Vehicle Angle: %s"), *VehicleId, *(VehiclePosition.ToString()), VehicleSpeed, *(VehicleAngle.ToString()) );
->>>>>>> master
+		UE_LOG(LogTemp, Warning, TEXT("VehicleID: %s; VehiclePosition: %s; VehicleSpeed: %f; VehicleAngle: %s"), *VehicleId, *VehiclePosition.ToString(), VehicleSpeed, *VehicleAngle.ToString());
 	}
+
 };
 
 //std::ostream& operator<<(std::ostream& os, const FVehicleInformation& vehicle) {
