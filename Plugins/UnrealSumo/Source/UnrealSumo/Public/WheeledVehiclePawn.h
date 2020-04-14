@@ -77,10 +77,17 @@ protected:
 
 	int count = 0;
 	
+<<<<<<< HEAD
 	FVehicleInformation EgoWheeledVehicleInformation;
 	
 public:
 	FrameRateSyn UnrealFPS;
+=======
+	
+	
+public:
+	
+>>>>>>> master
 	static const FName LookUpBinding;
 	static const FName LookRightBinding;
 
@@ -114,19 +121,28 @@ public:
 	virtual void Tick(float Delta) override;
 
 
+<<<<<<< HEAD
 	
+=======
+>>>>>>> master
 
-	Client* client;
+	
+	
 	FString  VehicleId;
 	
 
 	UVehiclePositionUpdateComponent* VehiclePositionUpdateComponent = nullptr;
 
+<<<<<<< HEAD
 	FVehicleInformation GetEgoWheeledVehicleInformation() { return EgoWheeledVehicleInformation; }
 	
 	void UpdateSUMOByTickCount(float Delta);
 
 private:
+=======
+private:
+
+>>>>>>> master
 	/// Transform of the vehicle. Location is shifted so it matches center of the
 	/// vehicle bounds rather than the actor's location.
 	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
@@ -150,6 +166,7 @@ private:
 	/// Transform of the vehicle's bounding box relative to the vehicle.
 	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
 		FTransform GetVehicleBoundingBoxTransform() const;
+<<<<<<< HEAD
 
 	/// Extent of the vehicle's bounding box.
 	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
@@ -171,4 +188,39 @@ private:
 
 	
 	void UpdateEgoWheeledVehicleToSUMO(float Delta);
+=======
+
+	/// Extent of the vehicle's bounding box.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+		FVector GetVehicleBoundingBoxExtent() const;
+
+	/// Get vehicle's bounding box component.
+	UFUNCTION(Category = "Unreal Ego Wheeled Vehicle", BlueprintCallable)
+	UBoxComponent *GetVehicleBoundingBox() const
+	{
+		return VehicleBounds;
+	}
+
+	/// Get the maximum angle at which the front wheel can steer.
+	UFUNCTION(Category = "CARLA Wheeled Vehicle", BlueprintCallable)
+		float GetMaximumSteerAngle() const;
+
+
+	
+
+	UPROPERTY(Category = "Unreal Ego Wheeled Vehicle", EditAnywhere)
+		UBoxComponent *VehicleBounds;
+
+public:
+	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
+	FVehicleInformation EgoWheeledVehicleInformation;
+	Client* client;
+	float GetEgoWheeledVehicleSpeed() { return EgoWheeledVehicleInformation.VehicleSpeed; }
+	// void GetEgoWheeledVehicleInformation(FVehicleInformation &v) { v = EgoWheeledVehicleInformation; }
+
+	void UpdateSpeedToSumo();
+
+	void SetupSocketForEgoWheeledVehicle(FString VehicleId, Client* ClientToSet);
+	
+>>>>>>> master
 };

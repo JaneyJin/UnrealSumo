@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "WheeledVehiclePawn.h"
@@ -18,7 +18,11 @@
 #include "Client.h"
 #include "VehiclePositionUpdateComponent.h"
 #include "Components/BoxComponent.h"
+<<<<<<< HEAD
 #include "SumoGameInstance.h"
+=======
+
+>>>>>>> master
 // For VR Headset
 //#if HMD_MODULE_INCLUDED
 //	#include "IHeadMountedDisplay.h"
@@ -28,7 +32,7 @@
 const FName AWheeledVehiclePawn::LookUpBinding("LookUp");
 const FName AWheeledVehiclePawn::LookRightBinding("LookRight");
 
-#define LOCTEXT_NAMESPACE "YishenWheeledVehiclePawn"
+#define LOCTEXT_NAMESPACE "WheeledVehiclePawn"
 #define MeterUnitConversion 100
 
 AWheeledVehiclePawn::AWheeledVehiclePawn() {
@@ -136,6 +140,7 @@ void AWheeledVehiclePawn::BeginPlay()
 //	bEnableInCar = UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled();
 //#endif // HMD_MODULE_INCLUDED
 	EnableIncarView(bEnableInCar, true);
+<<<<<<< HEAD
 	
 
 	USumoGameInstance* SumoData = Cast<USumoGameInstance>(GetGameInstance());
@@ -144,6 +149,14 @@ void AWheeledVehiclePawn::BeginPlay()
 	this->UnrealFPS = SumoData->SUMOToUnrealFrameRate;
 	
 }
+=======
+	UE_LOG(LogTemp, Warning, TEXT("wheeled vehicle pawn begin play"))
+	FVector TestStartLocation(6325,-4183,10);
+	SetActorLocation(TestStartLocation);
+}
+
+
+>>>>>>> master
 
 void AWheeledVehiclePawn::Tick(float Delta)
 {
@@ -180,6 +193,7 @@ void AWheeledVehiclePawn::Tick(float Delta)
 	// UE_LOG(LogTemp, Warning, TEXT("Current controller is %s"), GetController());
 	// UE_LOG(LogTemp, Warning, TEXT("%s set speed is not set. Forward Vector: %s ; Current forward speed is %f; Current Gear: %d"), *GetName(), *GetActorForwardVector().ToString(), GetVehicleMovement()->GetForwardSpeed(), GetVehicleMovement()->GetCurrentGear())
 
+<<<<<<< HEAD
 	/*EgoWheeledVehicleInformation.VehicleSpeed = GetVehicleForwardSpeed();
 	EgoWheeledVehicleInformation.VehiclePosition = GetTransform().GetLocation();
 	
@@ -192,6 +206,16 @@ void AWheeledVehiclePawn::Tick(float Delta)
 	UE_LOG(LogTemp, Error, TEXT("Update to SUMO.Speed: %f"), GetVehicleForwardSpeed())
 	client->vehicle.setSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), GetVehicleForwardSpeed());
 	UE_LOG(LogTemp, Error, TEXT("Get speed from sumo: %f"), client->vehicle.getSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)))
+=======
+	EgoWheeledVehicleInformation.VehicleSpeed = GetVehicleForwardSpeed();
+	// EgoWheeledVehicleInformation.VehiclePosition = GetVehicleOrientation();
+	EgoWheeledVehicleInformation.VehiclePosition = GetTransform().GetLocation();
+	UE_LOG(LogTemp, Warning, TEXT("%s -> VehicleSpeed: %f; Vehicle Position: %s; Forward Vector: %s ; Get vehicle orientation: %s; Get Transform Rotation: %f"), *GetName(), EgoWheeledVehicleInformation.VehicleSpeed, *EgoWheeledVehicleInformation.VehiclePosition.ToString(), *GetActorForwardVector().ToString(), *GetVehicleOrientation().ToString(), *GetTransform().Rotator().ToString())
+
+	// UE_LOG(LogTemp, Warning, TEXT("Current controller is %s"), GetController());
+	// UE_LOG(LogTemp, Warning, TEXT("%s set speed is not set. Forward Vector: %s ; Current forward speed is %f; Current Gear: %d"), *GetName(), *GetActorForwardVector().ToString(), GetVehicleMovement()->GetForwardSpeed(), GetVehicleMovement()->GetCurrentGear())
+
+>>>>>>> master
 }
 
 void AWheeledVehiclePawn::UpdateSUMOByTickCount(float Delta) {
@@ -342,7 +366,11 @@ void AWheeledVehiclePawn::SetupInCarHUD()
 		}
 	}
 }
+<<<<<<< HEAD
 //
+=======
+
+>>>>>>> master
 float AWheeledVehiclePawn::GetVehicleForwardSpeed() const
 {
 	return GetVehicleMovementComponent()->GetForwardSpeed();
@@ -378,3 +406,21 @@ float AWheeledVehiclePawn::GetMaximumSteerAngle() const
 	return FrontWheel->SteerAngle;
 }
 
+<<<<<<< HEAD
+=======
+
+void AWheeledVehiclePawn::UpdateSpeedToSumo() {
+
+	UE_LOG(LogTemp, Error, TEXT("Unreal speed: %f"), EgoWheeledVehicleInformation.VehicleSpeed)
+	 float SUMOVehicleSpeed = EgoWheeledVehicleInformation.VehicleSpeed / 100; // Transform UNREAL cm/s to SUMO m/s
+	 client->vehicle.setSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), 0);
+	
+	 UE_LOG(LogTemp, Error, TEXT("Feedback speed from SUMO: %f"), client->vehicle.getSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)))
+}
+
+void AWheeledVehiclePawn::SetupSocketForEgoWheeledVehicle(FString VehicleId, Client* ClientToSet) {
+	this->EgoWheeledVehicleInformation.VehicleId = VehicleId;
+	this->client = ClientToSet;
+	UE_LOG(LogTemp, Warning, TEXT("haha"))
+}
+>>>>>>> master

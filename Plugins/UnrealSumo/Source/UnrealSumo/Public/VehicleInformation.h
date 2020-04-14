@@ -11,11 +11,17 @@ public:
 	FString VehicleId = ""; // std::string 
 	FVector VehiclePosition = FVector(0, 0, 0); // libsumo::TraCIPosition  
 	double VehicleSpeed = 0; // double 
-	FColor VehicleColor = FColor(0, 0, 0, 1); // libsumo::TraCIColor //NOT USE
+	// FColor VehicleColor = FColor(0, 0, 0, 1); // libsumo::TraCIColor //NOT USE
 	FRotator VehicleAngle = FRotator(0,0,0);
+	bool EgoWheeledVehicle = false;
+
 
 	void print() {
+<<<<<<< HEAD
 		UE_LOG(LogTemp,Warning,TEXT("VehicleID: %s; VehiclePosition: %s; VehicleSpeed: %f; VehicleAngle: %s"), *VehicleId, *VehiclePosition.ToString(), VehicleSpeed, *VehicleAngle.ToString());
+=======
+		UE_LOG(LogTemp,Warning,TEXT("VehicleID: %s; VehiclePosition: %s; VehicleSpeed: %f; Vehicle Angle: %s"), *VehicleId, *(VehiclePosition.ToString()), VehicleSpeed, *(VehicleAngle.ToString()) );
+>>>>>>> master
 	}
 };
 

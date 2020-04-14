@@ -40,21 +40,10 @@ void ASumoWheeledVehicle::Tick(float Delta)
 		// UE_LOG(LogTemp, Warning, TEXT("Current controller is %s"), GetController());
 		// UE_LOG(LogTemp, Warning, TEXT("%s set speed is not set. Forward Vector: %s ; Current forward speed is %f; Current Gear: %d"), *GetName(), *GetActorForwardVector().ToString(), GetVehicleMovement()->GetForwardSpeed(),GetVehicleMovement()->GetCurrentGear())
 	}
-	
+
 }
 
 void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
-<<<<<<< HEAD
-	if (UnrealFPS.TickCount < UnrealFPS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), UnrealFPS.TickCount)
-		UnrealFPS.TickCount++;
-	}
-	else if (UnrealFPS.TickCount == UnrealFPS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle -> WheeledVehicle Tick() %d. Update from SUMo."), UnrealFPS.TickCount)
-
-		UnrealFPS.TickCount = 1;
-=======
 	if (UnrealFRS.TickCount < UnrealFRS.UETickBetweenSUMOUpdates) {
 		// UE_LOG(LogTemp, Display, TEXT("SumoWheeledVehicle -> Tick() %d"), UnrealFRS.TickCount)
 		UnrealFRS.TickCount++;
@@ -63,7 +52,6 @@ void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
 		
 		// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle -> Tick() %d. Update from SUMo."), UnrealFRS.TickCount)
 
->>>>>>> master
 		UpdateFromSUMO(Delta);
 		UnrealFRS.TickCount = 1;
 	}
@@ -75,6 +63,8 @@ void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
 
 void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
 
+
+	
 
 	std::string VID(TCHAR_TO_UTF8(*VehicleId));
 	// UE_LOG(LogTemp, Display, TEXT("GetOwner %s :: VehicleId %s "), *ObjectName, *VID);
@@ -137,7 +127,7 @@ bool ASumoWheeledVehicle::InitializeWheeledVehicle(FVehicleInformation &VehicleT
 
 	this->VehicleId = VehicleToSet.VehicleId;
 	this->client = ClientToSet;
-	this->UnrealFPS = SUMOToUnrealFrameRate;
+	this->UnrealFRS = SUMOToUnrealFrameRate;
 	if (client && VehicleId.IsEmpty()) {
 		return false; // Fail to initialize
 	}
