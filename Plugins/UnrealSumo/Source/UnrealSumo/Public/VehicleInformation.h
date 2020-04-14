@@ -15,7 +15,7 @@ public:
 	FRotator VehicleAngle = FRotator(0,0,0);
 
 	void print() {
-		UE_LOG(LogTemp,Warning,TEXT("VehicleID: %s; VehiclePosition: %s"), TCHAR_TO_UTF8(*VehicleId), TCHAR_TO_UTF8(*VehiclePosition.ToString()), VehicleSpeed, TCHAR_TO_UTF8(*VehicleAngle.ToString()));
+		UE_LOG(LogTemp,Warning,TEXT("VehicleID: %s; VehiclePosition: %s; VehicleSpeed: %f; VehicleAngle: %s"), *VehicleId, *VehiclePosition.ToString(), VehicleSpeed, *VehicleAngle.ToString());
 	}
 };
 

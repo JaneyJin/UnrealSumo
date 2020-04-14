@@ -43,7 +43,7 @@ public:
 
 	// Instantiate VehicleInformation Structure class to pass these value to VehiclePositionUpdateComponent Class
 	FVehicleInformation UnrealVehicleInformation;
-	FrameRateSyn UnrealFRS;
+	FrameRateSyn UnrealFPS;
 
 	// UpdateFromSUMO()
 	FVector VehicleNewPosition = FVector(0, 0, 0);

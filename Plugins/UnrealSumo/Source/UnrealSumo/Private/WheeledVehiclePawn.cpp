@@ -17,7 +17,8 @@
 #include "CustomWheelRear.h"
 #include "Client.h"
 #include "VehiclePositionUpdateComponent.h"
-
+#include "Components/BoxComponent.h"
+#include "SumoGameInstance.h"
 // For VR Headset
 //#if HMD_MODULE_INCLUDED
 //	#include "IHeadMountedDisplay.h"
@@ -135,21 +136,13 @@ void AWheeledVehiclePawn::BeginPlay()
 //	bEnableInCar = UHeadMountedDisplayFunctionLibrary::IsHeadMountedDisplayEnabled();
 //#endif // HMD_MODULE_INCLUDED
 	EnableIncarView(bEnableInCar, true);
-	UE_LOG(LogTemp, Warning, TEXT("wheeled vehicle pawn begin play"))
-		
-}
+	
 
-void AWheeledVehiclePawn::SetWheeledVehicleID(FString DefaultPawnName)
-{
-	EgoWheeledVehicle.VehicleId = DefaultPawnName;
-}
-
-FVehicleInformation AWheeledVehiclePawn::UpdateEgoVehicleToSUMO() {
-	EgoWheeledVehicle.VehicleSpeed = GetVehicleMovementComponent()->GetForwardSpeed();
-	EgoWheeledVehicle.VehiclePosition = GetOwner()->GetActorLocation();
-	EgoWheeledVehicle.VehicleAngle = GetOwner()->GetActorRotation();
-	EgoWheeledVehicle.print();
-	return EgoWheeledVehicle;
+	USumoGameInstance* SumoData = Cast<USumoGameInstance>(GetGameInstance());
+	this->client = SumoData->client;
+	this->EgoWheeledVehicleInformation.VehicleId = SumoData->EgoWheeledVehicleId;
+	this->UnrealFPS = SumoData->SUMOToUnrealFrameRate;
+	
 }
 
 void AWheeledVehiclePawn::Tick(float Delta)
@@ -184,9 +177,46 @@ void AWheeledVehiclePawn::Tick(float Delta)
 			InternalCamera->RelativeRotation = HeadRotation;
 		}
 	}
+	// UE_LOG(LogTemp, Warning, TEXT("Current controller is %s"), GetController());
+	// UE_LOG(LogTemp, Warning, TEXT("%s set speed is not set. Forward Vector: %s ; Current forward speed is %f; Current Gear: %d"), *GetName(), *GetActorForwardVector().ToString(), GetVehicleMovement()->GetForwardSpeed(), GetVehicleMovement()->GetCurrentGear())
+
+	/*EgoWheeledVehicleInformation.VehicleSpeed = GetVehicleForwardSpeed();
+	EgoWheeledVehicleInformation.VehiclePosition = GetTransform().GetLocation();
+	
+	UE_LOG(LogTemp, Error, TEXT("%s -> VehicleSpeed: %f; Vehicle Position: %s; Forward Vector: %s ; Get vehicle orientation: %s; Get Transform Rotation: %f"), *GetName(), GetVehicleForwardSpeed(), *GetTransform().GetLocation().ToString(), *GetActorForwardVector().ToString(), *GetVehicleOrientation().ToString(), *GetTransform().Rotator().ToString())
+	*/
+	// UE_LOG(LogTemp, Error, TEXT("%s"), *EgoWheeledVehicleInformation.VehicleId);
+	UE_LOG(LogTemp, Error, TEXT("%s -> VehicleSpeed: %f;"), *GetName(), GetVehicleForwardSpeed())
+
+	// UpdateSUMOByTickCount(Delta);
+	UE_LOG(LogTemp, Error, TEXT("Update to SUMO.Speed: %f"), GetVehicleForwardSpeed())
+	client->vehicle.setSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), GetVehicleForwardSpeed());
+	UE_LOG(LogTemp, Error, TEXT("Get speed from sumo: %f"), client->vehicle.getSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)))
+}
+
+void AWheeledVehiclePawn::UpdateSUMOByTickCount(float Delta) {
+	if (UnrealFPS.TickCount < UnrealFPS.UETickBetweenSUMOUpdates) {
+		UE_LOG(LogTemp, Display, TEXT("AWheeledVehiclePawn -> Tick() %d; # of tick between SUMOUpdate: %d"), UnrealFPS.TickCount, UnrealFPS.UETickBetweenSUMOUpdates)
+			UnrealFPS.TickCount++;
+	}
+	else if (UnrealFPS.TickCount == UnrealFPS.UETickBetweenSUMOUpdates) {
+		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
+		UE_LOG(LogTemp, Warning, TEXT("AWheeledVehiclePawn -> WheeledVehicle Tick() %d. Update from SUMo. # of tick between SUMOUpdate: %d"), UnrealFPS.TickCount, UnrealFPS.UETickBetweenSUMOUpdates)
+
+			UnrealFPS.TickCount = 1;
+		UpdateEgoWheeledVehicleToSUMO(Delta);
+	}
+	else {
+		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))
+	}
 
 }
 
+void AWheeledVehiclePawn::UpdateEgoWheeledVehicleToSUMO(float Delta) {
+	UE_LOG(LogTemp, Error, TEXT("Update to SUMO.Speed: %f"), GetVehicleForwardSpeed())
+	client->vehicle.setSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), GetVehicleForwardSpeed());
+	UE_LOG(LogTemp, Error, TEXT("Get speed from sumo: %f"), client->vehicle.getSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)))
+}
 
 void AWheeledVehiclePawn::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
@@ -312,3 +342,39 @@ void AWheeledVehiclePawn::SetupInCarHUD()
 		}
 	}
 }
+//
+float AWheeledVehiclePawn::GetVehicleForwardSpeed() const
+{
+	return GetVehicleMovementComponent()->GetForwardSpeed();
+}
+
+
+FVector AWheeledVehiclePawn::GetVehicleOrientation() const
+{
+	return GetVehicleTransform().GetRotation().GetForwardVector();
+}
+
+int32 AWheeledVehiclePawn::GetVehicleCurrentGear() const
+{
+	return GetVehicleMovementComponent()->GetCurrentGear();
+}
+
+FTransform AWheeledVehiclePawn::GetVehicleBoundingBoxTransform() const
+{
+	return VehicleBounds->GetRelativeTransform();
+}
+
+FVector AWheeledVehiclePawn::GetVehicleBoundingBoxExtent() const
+{
+	return VehicleBounds->GetScaledBoxExtent();
+}
+
+float AWheeledVehiclePawn::GetMaximumSteerAngle() const
+{
+	const auto &Wheels = GetVehicleMovementComponent()->Wheels;
+	check(Wheels.Num() > 0);
+	const auto *FrontWheel = Wheels[0];
+	check(FrontWheel != nullptr);
+	return FrontWheel->SteerAngle;
+}
+

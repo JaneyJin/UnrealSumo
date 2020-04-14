@@ -8,8 +8,6 @@ struct FrameRateSyn
 	GENERATED_BODY()
 
 public:
-
-
 	/// Variables modified in MatchFrameRatePerSecond()
 	// Unreal FPS and tick counter
 	int32 TickCount = 0;
@@ -20,4 +18,8 @@ public:
 	float NextTimeToUpdate = 0;
 	float UpdateDeltaT = 0;
 	int32 UETickBetweenSUMOUpdates = 0;
+
+	void print() {
+		UE_LOG(LogTemp, Warning, TEXT("TickCount: %d; UnrealFPS: %d; NextTimeToUpdate: %f; UpdateDeltaT: %f; UETickBetweenSUMOUpdates: %f"), TickCount, UnrealFPS, NextTimeToUpdate, UpdateDeltaT, UETickBetweenSUMOUpdates);
+	}
 };

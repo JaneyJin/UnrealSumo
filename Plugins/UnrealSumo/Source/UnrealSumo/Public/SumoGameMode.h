@@ -17,7 +17,7 @@
 // Predefine class
 class ASumoWheeledVehicle;
 class AWheeledVehiclePawn;
-
+class USumoGameInstance;
 
 UCLASS()
 class ASumoGameMode : public AGameMode
@@ -77,6 +77,7 @@ public:
 
 	ACustomVehicle* RandomVehicle = nullptr;*/
 
+	USumoGameInstance* SumoData;
 
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (ToolTip = "Wheeled vehicle with custom SumoWheeledVehicle class"))
 		TArray<TSubclassOf<ASumoWheeledVehicle>> WheeledVehicleBPList;
@@ -85,8 +86,6 @@ public:
 
 	AWheeledVehiclePawn* EgoWheeledVehicle = nullptr;
 
-	
-	UClass* test2;
 	/*UPROPERTY(EditAnywhere, Category = "SUMO Setup")
 		bool AllowSpawnEgoVehicle;
 
@@ -133,9 +132,9 @@ public:
 	 * @param
 	 * @return
 	 */
-	void UpdateFromSUMO();
+	void UpdateVehicleFromSUMO();
 
-	void UpdateToSUMO();
+	void UpdateEgoWheeledVehicleToSUMO();
 
 	/**
 	 * Spawn random vehicle from the VehicleBPList in SumoDefaultPawn_BP in the UE
@@ -162,5 +161,6 @@ public:
 	virtual void BeginPlay() override;
 
 
-
+private:
+	FString EgoWheeledVehicleID;
 };

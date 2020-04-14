@@ -7,20 +7,21 @@
 #include "GameFramework/PlayerStart.h"
 #include <algorithm>    // std::find
 #include <vector> 
+#include "SumoPlayerController.h"
+#include "SumoGameInstance.h"
 
 ASumoGameMode::ASumoGameMode(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
 {
 
 	// set default player class to customed MyPlayerController
-	// PlayerControllerClass = ASumoPlayerController::StaticClass();
+	PlayerControllerClass = ASumoPlayerController::StaticClass();
 
 }
 
 void ASumoGameMode::BeginPlay() {
 	Super::BeginPlay();
-
-
+	
 	// Setup socket for UE and connect to SUMO
 	try {
 
@@ -39,11 +40,35 @@ void ASumoGameMode::BeginPlay() {
 		if (!SetupEgoVehicle()) {
 			UE_LOG(LogTemp, Error, TEXT("Fail to set up EGOVehcile"))
 		}
-		
+
+		/* APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0) //for singleplayer
+		ASumoPlayerController* PlayerController = (ASumoPlayerController*)GetWorld()->GetFirstPlayerController();
+		check(PlayerController);
+		UE_LOG(LogTemp, Error, TEXT("%s.\n"), *PlayerController->GetName())
+		PlayerController->Possess(EgoWheeledVehicle);
+
+		AController* Player;
+		for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
+		{
+			APlayerController* PlayerController = *Iterator;
+			PlayerController->Possess(EgoWheeledVehicle);
+			if (Player != PlayerController && PlayerController->GetPawn())
+			{
+				// MinPlayerDistance = FMath::Min(MinPlayerDistance, (SpawnLocation - PlayerController->GetPawn()->GetActorLocation()).Size());
+			}
+		}*/
+
+		SumoData = Cast<USumoGameInstance>(GetGameInstance()); 
+		if (SumoData) {
+			SumoData->SetSumoGameInstance(&client, DefaultPawnClass->GetName(),SUMOToUnrealFrameRate);
+		}
+
 	}
 	catch (tcpip::SocketException& e) {
 		UE_LOG(LogTemp, Error, TEXT("#Error while connecting: %s.\n"), e.what())
 	}
+
+
 
 }
 
@@ -61,7 +86,7 @@ void ASumoGameMode::Tick(float DeltaTime)
 		// Not allow UE Tick() slower than SUMo FPS.  
 		if (client.SetUpdateDeltaTFlag) {
 			UpdateSUMOByTickCount();
-			//UpdateSUMOByMachineTime();
+			UpdateSUMOByMachineTime();
 		}
 
 		
@@ -69,7 +94,7 @@ void ASumoGameMode::Tick(float DeltaTime)
 	/*else {
 		UE_LOG(LogTemp, Warning, TEXT("Tick. Socket Close."))
 	}*/
-
+	
 }
 
 void ASumoGameMode::MatchFrameRatePerSecond() {
@@ -116,61 +141,46 @@ void ASumoGameMode::MatchFrameRatePerSecond() {
 }
 
 bool ASumoGameMode::SetupEgoVehicle() {
-	auto CurrentDefaultPawnSuperClassName = DefaultPawnClass->GetSuperClass()->GetName();
-	auto CurrentDefaultPawnOwnerName = DefaultPawnClass->GetOwnerClass()->GetName();
-	if (CurrentDefaultPawnOwnerName != "DefaultPawn" && CurrentDefaultPawnSuperClassName == "WheeledVehiclePawn") {
 
-		// UE_LOG(LogTemp, Warning, TEXT("Ego Vehicle: %s"), *DefaultPawnClass->GetName())
-		// EgoWheeledVehicleFlag = true;
-		UE_LOG(LogTemp, Warning, TEXT("DefaultPawnClass: %s"), &DefaultPawnClass)
-			auto test = DefaultPawnClass;
-		UE_LOG(LogTemp, Warning, TEXT("DefaultPawnClass: %s"), &test)
-		test2 = DefaultPawnClass->GetClass();
-		
-		// AWheeledVehiclePawn t = Cast<AWheeledVehiclePawn>(DefaultPawnClass->GetClass());
+	if (DefaultPawnClass) {
+		auto CurrentDefaultPawnSuperClassName = DefaultPawnClass->GetSuperClass()->GetName();
+		auto CurrentDefaultPawnOwnerName = DefaultPawnClass->GetOwnerClass()->GetName();
+		if (CurrentDefaultPawnOwnerName != "DefaultPawn" && CurrentDefaultPawnSuperClassName == "WheeledVehiclePawn") {
+			EgoWheeledVehicle = (AWheeledVehiclePawn*)DefaultPawnClass->GetClass();
 
-		
-		UE_LOG(LogTemp, Warning, TEXT("haha"))
-		// EgoWheeledVehicle(*test);
+			if (EgoWheeledVehicle) {
 
-		if (EgoWheeledVehicle) {
-			EgoWheeledVehicle->SetWheeledVehicleID(DefaultPawnClass->GetName());
+				EgoWheeledVehicleID = DefaultPawnClass->GetName();
+				auto RouteIDList = client.route.getIDList();
+				// EgoWheeledVehicleInformation.VehicleId = CurrentDefaultPawnOwnerName;
+				std::string StartRouteId = RouteId.IsEmpty() || std::find(RouteIDList.begin(), RouteIDList.end(), TCHAR_TO_UTF8(*RouteId)) == RouteIDList.end() ? RouteIDList[0] : TCHAR_TO_UTF8(*RouteId);
 
-			auto EgoWheeledVehicleInformation = EgoWheeledVehicle->GetEgoWheeledVehicleInformation();
-			EgoWheeledVehicleInformation.print();
 
-			auto RouteIDList = client.route.getIDList();
-			
-			std::string StartRouteId = RouteId.IsEmpty() || std::find(RouteIDList.begin(), RouteIDList.end(), TCHAR_TO_UTF8(*RouteId)) == RouteIDList.end() ? RouteIDList[0] : TCHAR_TO_UTF8(*RouteId);
-			client.vehicle.add(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), StartRouteId);
-			//client.vehicle.moveToXY(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId),);
-			
-			return true;
+				client.vehicle.add(TCHAR_TO_UTF8(*EgoWheeledVehicleID), StartRouteId);
+				auto EgoWheeledVehicleStartPosition = client.vehicle.getPosition(TCHAR_TO_UTF8(*EgoWheeledVehicleID));
+
+				// EgoWheeledVehicle->SetupEgoWheeledVehicle(EgoWheeledVehicleID, &client, SUMOToUnrealFrameRate);
+				return true;
+			}
+
 		}
-
 	}
-
 	return false;
 }
 
 
 void ASumoGameMode::UpdateSUMOByTickCount() {
-	//if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
-	//	// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), SUMOToUnrealFrameRate.TickCount)
-	//	SUMOToUnrealFrameRate.TickCount++;
-	//}
-	//else 
+	 
 	// Fix Tick() rate to update vehicle from SUMO
 	if (SUMOToUnrealFrameRate.TickCount < SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
+		// UE_LOG(LogTemp, Display, TEXT("SUMOGameMode -> #of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
 		SUMOToUnrealFrameRate.TickCount++;
-		// UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
 	}
 	else if (SUMOToUnrealFrameRate.TickCount == SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
+		// UE_LOG(LogTemp, Warning, TEXT("SUMOGameMode -> Tick %d : Update from SUMO."), SUMOToUnrealFrameRate.TickCount)
+		UpdateVehicleFromSUMO();
+		
 		SUMOToUnrealFrameRate.TickCount = 1;
-		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		// UE_LOG(LogTemp, Display, TEXT("#of ticks between SUMO updates is %d. GameMode Tick() %d. Update from SUMo."), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates, SUMOToUnrealFrameRate.TickCount)
-		UpdateFromSUMO();
-		UpdateToSUMO();
 
 	}
 	else {
@@ -184,15 +194,15 @@ void ASumoGameMode::UpdateSUMOByMachineTime() {
 
 	if (SUMOToUnrealFrameRate.NextTimeToUpdate - TimeInWorld < 0.0001) {
 		SUMOToUnrealFrameRate.NextTimeToUpdate += SUMOToUnrealFrameRate.UpdateDeltaT;
-		UpdateFromSUMO();
-		// UE_LOG(LogTemp, Warning, TEXT("SumoDefaultPawn:: SUMOSTEP: %d ; Update from SUMO: %f . NextTimeToUpdate %f"), SUMOStep, TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
+		UpdateVehicleFromSUMO();
+		// UE_LOG(LogTemp, Warning, TEXT("SUMOGameMode ->  SUMOSTEP: %d ; Update from SUMO: %f . NextTimeToUpdate %f"), SUMOStep, TimeInWorld, SUMOToUnrealFrameRate.NextTimeToUpdate)
 	}
 	/*else {
-		UE_LOG(LogTemp, Display, TEXT("%f GameMode Tick()"), TimeInWorld)
+		UE_LOG(LogTemp, Display, TEXT("SUMOGameMode -> %f GameMode Tick()"), TimeInWorld)
 	}*/
 }
 
-void ASumoGameMode::UpdateFromSUMO() {
+void ASumoGameMode::UpdateVehicleFromSUMO() {
 	if (client.simulation.getMinExpectedNumber() > 0) {
 		client.simulationStep();
 
@@ -210,9 +220,15 @@ void ASumoGameMode::UpdateFromSUMO() {
 			for (int i = 0; i < DepartedNumber; i++) {
 
 				/// Retrieve vehicle id, speed, positon and color from SUMO 
-				// Covert std::string into FString
+				
 				DepartedVehicleId = DepartedList[i];
+				if (DepartedVehicleId == TCHAR_TO_UTF8(*EgoWheeledVehicleID)) {
+					continue;
+				}
+
+				// Covert std::string into FString
 				SUMOVehicleInformation.VehicleId = DepartedVehicleId.c_str();
+
 
 				// Assign speed
 				SUMOVehicleInformation.VehicleSpeed = client.vehicle.getSpeed(DepartedVehicleId);
@@ -264,10 +280,11 @@ void ASumoGameMode::UpdateFromSUMO() {
 	}
 }
 
-
-void ASumoGameMode::UpdateToSUMO() {
+// NOT USE
+void ASumoGameMode::UpdateEgoWheeledVehicleToSUMO() {
 	if (EgoWheeledVehicle) {
-		EgoWheeledVehicle->UpdateEgoVehicleToSUMO();
+		FVehicleInformation test = EgoWheeledVehicle->GetEgoWheeledVehicleInformation();
+		test.print();
 	}
 }
 

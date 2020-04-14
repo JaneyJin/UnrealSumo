@@ -37,19 +37,19 @@ void ASumoWheeledVehicle::Tick(float Delta)
 		//GetVehicleMovementComponent()->SetSteeringInput(10);
 		UpdateSUMOByTickCount(Delta);
 	}
-
+	
 }
 
 void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
-	if (UnrealFRS.TickCount < UnrealFRS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), UnrealFRS.TickCount)
-		UnrealFRS.TickCount++;
+	if (UnrealFPS.TickCount < UnrealFPS.UETickBetweenSUMOUpdates) {
+		// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), UnrealFPS.TickCount)
+		UnrealFPS.TickCount++;
 	}
-	else if (UnrealFRS.TickCount == UnrealFRS.UETickBetweenSUMOUpdates) {
+	else if (UnrealFPS.TickCount == UnrealFPS.UETickBetweenSUMOUpdates) {
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		UE_LOG(LogTemp, Warning, TEXT("WheeledVehicle Tick() %d. Update from SUMo."), UnrealFRS.TickCount)
+		// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle -> WheeledVehicle Tick() %d. Update from SUMo."), UnrealFPS.TickCount)
 
-		UnrealFRS.TickCount = 1;
+		UnrealFPS.TickCount = 1;
 		UpdateFromSUMO(Delta);
 	}
 	else {
@@ -121,7 +121,7 @@ bool ASumoWheeledVehicle::InitializeWheeledVehicle(FVehicleInformation &VehicleT
 
 	this->VehicleId = VehicleToSet.VehicleId;
 	this->client = ClientToSet;
-	this->UnrealFRS = SUMOToUnrealFrameRate;
+	this->UnrealFPS = SUMOToUnrealFrameRate;
 	if (client && VehicleId.IsEmpty()) {
 		return false; // Fail to initialize
 	}
