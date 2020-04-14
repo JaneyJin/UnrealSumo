@@ -188,10 +188,10 @@ void AWheeledVehiclePawn::Tick(float Delta)
 	// UE_LOG(LogTemp, Error, TEXT("%s"), *EgoWheeledVehicleInformation.VehicleId);
 	UE_LOG(LogTemp, Error, TEXT("%s -> VehicleSpeed: %f;"), *GetName(), GetVehicleForwardSpeed())
 
-	// UpdateSUMOByTickCount(Delta);
-	UE_LOG(LogTemp, Error, TEXT("Update to SUMO.Speed: %f"), GetVehicleForwardSpeed())
+	UpdateSUMOByTickCount(Delta);
+	/*UE_LOG(LogTemp, Error, TEXT("Update to SUMO.Speed: %f"), GetVehicleForwardSpeed())
 	client->vehicle.setSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), GetVehicleForwardSpeed());
-	UE_LOG(LogTemp, Error, TEXT("Get speed from sumo: %f"), client->vehicle.getSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)))
+	UE_LOG(LogTemp, Error, TEXT("Get speed from sumo: %f"), client->vehicle.getSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)))*/
 }
 
 void AWheeledVehiclePawn::UpdateSUMOByTickCount(float Delta) {
@@ -201,9 +201,9 @@ void AWheeledVehiclePawn::UpdateSUMOByTickCount(float Delta) {
 	}
 	else if (UnrealFPS.TickCount == UnrealFPS.UETickBetweenSUMOUpdates) {
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		UE_LOG(LogTemp, Warning, TEXT("AWheeledVehiclePawn -> WheeledVehicle Tick() %d. Update from SUMo. # of tick between SUMOUpdate: %d"), UnrealFPS.TickCount, UnrealFPS.UETickBetweenSUMOUpdates)
+		UE_LOG(LogTemp, Display, TEXT("AWheeledVehiclePawn -> WheeledVehicle Tick() %d. Update from SUMo. # of tick between SUMOUpdate: %d"), UnrealFPS.TickCount, UnrealFPS.UETickBetweenSUMOUpdates)
 
-			UnrealFPS.TickCount = 1;
+		UnrealFPS.TickCount = 1;
 		UpdateEgoWheeledVehicleToSUMO(Delta);
 	}
 	else {
@@ -213,8 +213,14 @@ void AWheeledVehiclePawn::UpdateSUMOByTickCount(float Delta) {
 }
 
 void AWheeledVehiclePawn::UpdateEgoWheeledVehicleToSUMO(float Delta) {
-	UE_LOG(LogTemp, Error, TEXT("Update to SUMO.Speed: %f"), GetVehicleForwardSpeed())
-	client->vehicle.setSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), GetVehicleForwardSpeed());
+	float VehicleSpeed = GetVehicleForwardSpeed() / 100; // Unreal speed unit cm/s -> Sumo speed unit m/s
+	// How to solve negative speed
+	if (VehicleSpeed < 0.0000001 ) {
+		VehicleSpeed = 0;
+	}
+
+	UE_LOG(LogTemp, Error, TEXT("Update to SUMO.Speed: %f"), VehicleSpeed)
+	client->vehicle.setSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId), VehicleSpeed);
 	UE_LOG(LogTemp, Error, TEXT("Get speed from sumo: %f"), client->vehicle.getSpeed(TCHAR_TO_UTF8(*EgoWheeledVehicleInformation.VehicleId)))
 }
 

@@ -240,11 +240,11 @@ void ASumoGameMode::UpdateVehicleFromSUMO() {
 				SUMOVehicleInformation.VehiclePosition.Z = DepartedVehiclePos.z * MeterUnitConversion + 30;
 
 				// Convert libsumo:: TraCIColor into FColor
-				DepartedVehicleColor = client.vehicle.getColor(DepartedVehicleId);
+				/*DepartedVehicleColor = client.vehicle.getColor(DepartedVehicleId);
 				SUMOVehicleInformation.VehicleColor.R = DepartedVehicleColor.r;
 				SUMOVehicleInformation.VehicleColor.G = DepartedVehicleColor.g;
 				SUMOVehicleInformation.VehicleColor.B = DepartedVehicleColor.b;
-				SUMOVehicleInformation.VehicleColor.A = DepartedVehicleColor.a;
+				SUMOVehicleInformation.VehicleColor.A = DepartedVehicleColor.a;*/
 
 				SUMOVehicleInformation.VehicleAngle.Yaw = client.vehicle.getAngle(DepartedVehicleId);
 				// Align with SUMO initial direction
