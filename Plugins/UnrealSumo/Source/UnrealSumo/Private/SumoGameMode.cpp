@@ -24,14 +24,14 @@ void ASumoGameMode::BeginPlay() {
 	
 	// Setup socket for UE and connect to SUMO
 	try {
-
+		
 		// Validate the port number
 		if ((PortNumber <= 0) || (PortNumber > LargestPortNumber)) {
 			PortNumber = DefaultPortNumber;
 			UE_LOG(LogTemp, Warning, TEXT("Missing PortNum. Set to 24000....."))
 		}
 		UE_LOG(LogTemp, Warning, TEXT("Connect....."))
-
+		
 		client.connect("localhost", PortNumber);
 		// Validate all flags and FPS 
 		SocketIsNotClosed = true;
@@ -86,7 +86,7 @@ void ASumoGameMode::Tick(float DeltaTime)
 		// Not allow UE Tick() slower than SUMo FPS.  
 		if (client.SetUpdateDeltaTFlag) {
 			UpdateSUMOByTickCount();
-			UpdateSUMOByMachineTime();
+			// UpdateSUMOByMachineTime();
 		}
 
 		
@@ -274,6 +274,8 @@ void ASumoGameMode::UpdateVehicleFromSUMO() {
 		client.close();
 		SocketIsNotClosed = false;
 		client.SetUpdateDeltaTFlag = false;
+
+		//SumoData->CloseSocket();
 		// Exit game in UE
 		//FGenericPlatformMisc::RequestExit(false);
 		//GetWorld()->Exec(GetWorld(), TEXT("Exit"));

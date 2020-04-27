@@ -4,11 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "src/TraCIAPI.h"
+
 /**
  * 
  */
-class UNREALSUMO_API Client : public TraCIAPI
-{
+class UNREALSUMO_API Client : public TraCIAPI{
 public:
 	Client();
 	~Client();

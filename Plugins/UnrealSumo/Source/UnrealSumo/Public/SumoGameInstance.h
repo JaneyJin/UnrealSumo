@@ -19,8 +19,9 @@ public:
 	Client* client;
 	FString EgoWheeledVehicleId;
 	FrameRateSyn SUMOToUnrealFrameRate;
+	// bool SocketIsNotClosed;
 
 	USumoGameInstance(const FObjectInitializer& ObjectInitializer);   /** Increment this value in any map, change map, and notice it persists! */
 	void SetSumoGameInstance(Client* client, FString EgoWheeledVehicleId, FrameRateSyn SUMOToUnrealFrameRate);
-	
+	void CloseSocket();
 };

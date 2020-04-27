@@ -17,3 +17,6 @@ void USumoGameInstance::SetSumoGameInstance(Client* client, FString EgoWheeledVe
 	UE_LOG(LogTemp, Warning, TEXT("# of tick between SUMOUpdate: %d"), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates)
 }
 
+void USumoGameInstance::CloseSocket() {
+	client = nullptr;
+}

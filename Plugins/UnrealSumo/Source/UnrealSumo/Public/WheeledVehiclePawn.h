@@ -16,6 +16,7 @@ class UInputComponent;
 class UBoxComponent;
 class Client;
 class UVehiclePositionUpdateComponent;
+class USumoGameInstance;
 
 UCLASS()
 class UNREALSUMO_API AWheeledVehiclePawn : public AWheeledVehicle
@@ -78,8 +79,14 @@ protected:
 	int count = 0;
 	
 	FVehicleInformation EgoWheeledVehicleInformation;
-	
+	std::string EndEdge;
+	// Return false if ego wheeled vehicle finish the route in the SUMO
+	bool ArrivedFlag;
+	void EgoWheeledVehicleArrivedInSUMO();
+	FVector VehiclePositionInWorld;
+	float VehicleAngle_;
 public:
+	USumoGameInstance* SumoData;
 	FrameRateSyn UnrealFPS;
 	static const FName LookUpBinding;
 	static const FName LookRightBinding;
