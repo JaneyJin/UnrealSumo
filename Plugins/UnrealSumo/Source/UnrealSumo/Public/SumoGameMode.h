@@ -25,45 +25,32 @@ class ASumoGameMode : public AGameMode
 	GENERATED_BODY()
 
 
-public:
+private:
 	/// Variables modified in BeginPlay()
-	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (ToolTip = "Port number for connection with SUMO server. \nIf the port number is empty or invalid, the UE will set to the default port number 24000"))
-		int32 PortNumber;
 	// Creation of an Client instance
 	// Instantiate a socket and connect to SUMO server
 	Client client;
-	// Flag to check whether Unreal is connecting to SUMO server
-	// If Unreal fail to connect to SUMO server or SUMO has all of vehicles finish the trip, UE will not get crash 
-	bool SocketIsNotClosed = false;
+	
 
-	/// Variables modified in MatchFrameRatePerSecond()
-	FrameRateSyn SUMOToUnrealFrameRate;
-
-	// SUMO server FPS
-	double SUMODeltaT = 0;
-
-
-	/// Variables modified in Tick()
-	// Unreal time after start play the game
-	float TimeInWorld = 0;
+	/// Variables modified in SetupEgoVehicle()
+	// Identity of ego wheeled vehicle in unreal engine and SUMO added vehicle. 
+	FString EgoWheeledVehicleId;
+	// Reference to the ego wheeled vehicle in Unreal Engine.
+	AWheeledVehiclePawn* EgoWheeledVehicle = nullptr;
 
 
 	/// Variables modified in UpdateFromSUMO()
-	// Record SUMo server current step and time in Unreal project 
-	int32 SUMOStep = 0;
-	double SUMOTime = 0;
+	// Record SUMo server current step and time in Unreal project. 
 	int DepartedNumber = 0;
 	std::vector<std::string> DepartedList;
 
-
-	// Information retrieval from SUMO server
+	// Information retrieval from SUMO server.
 	FVehicleInformation SUMOVehicleInformation;
-	// Turn SUMO meters into 
+	// Turn SUMO meters into centermeters
 	int32 MeterUnitConversion = 100;
 	// Current Departed Vehicle Id. Used to retrieval information
-	std::string DepartedVehicleId = "";
+	std::string DepartedVehicleId;
 	libsumo::TraCIPosition DepartedVehiclePos;
-	libsumo::TraCIColor DepartedVehicleColor;
 
 
 	/// Variables modified in SpawnRandomVehicle()
@@ -71,20 +58,66 @@ public:
 	FRotator SpawnRotator;
 	// Spawn random vehicle from a list of BP class
 	UClass* selectedClass;
-	/// UPROPERTY(EditAnywhere,BlueprintReadWrite, Category = "SUMo Setup") 
-	/*UPROPERTY(EditAnywhere, Category = "SUMO Setup")
-		TArray<TSubclassOf<ACustomVehicle>> VehicleBPList;
 
-	ACustomVehicle* RandomVehicle = nullptr;*/
 
-	USumoGameInstance* SumoData;
+	// Variables used by SumoGameMode, SumoWheeledVehicle and WheeledVehiclePawn class. Variables are modified in SumoGameMode.
+	USumoGameInstance* SumoGameInstance;
 
+	/**
+	 * Setup ego wheeled vehicle in Unreal Engine, share connected socket and add an ego wheeled vehicle in SUMO
+	 *
+	 * @return   True on success set up above information, vice versa.
+	 */
+	bool SetupEgoWheeledVehicle();
+
+
+	/**
+	 * Unreal get the frame rate from SUMO and re-align Unreal time to update from SUMO. Related variables are saved to the shared variable class SumoGameInstance.
+	 *
+	 */
+	void MatchFrameRatePerSecond();
+
+
+
+	/**
+	 * Setup the customized GameInstance shared between different object and
+	 *
+	 * @return   True on success set SumoGameInstance and initialize connected socket, vice versa.
+	 */
+	bool SetupGameInstance();
+
+	/**
+	 * Update Unreal from SUMO based on Tick counter
+	 */
+	void UpdateFromSUMOByTickCount();
+
+
+
+	/**
+	 * Get arrived (left scenario) and departed (get into scenario) vehicle in SUMO within one step
+	 *
+	 */
+	void UpdateSimulationFromSUMO();
+
+	/**
+	 * Spawn random vehicle from the WheeledVehicleBPList
+	 * Can be set in UnrealSumo Content -> Blueprint folder -> SumoGameMode_BP -> SUMO Setup section
+	 *
+	 * @param  Wheeled Vehicle to spawn
+	 * @return   True on success spawn a wheeled vehicle and vice versa.
+	 */
+	bool SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehicle);
+
+public:
+	/// Variables modified in BeginPlay()
+	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (ToolTip = "Port number for connection with SUMO server. \nIf the port number is empty or invalid, the UE will set to the default port number 24000"))
+		int32 PortNumber;
+
+
+	// Wheeled vehicles controlled by SUMO vehicle. All of the vehicles selected are inherited from ASumoWheeledVehicle.
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (ToolTip = "Wheeled vehicle with custom SumoWheeledVehicle class"))
 		TArray<TSubclassOf<ASumoWheeledVehicle>> WheeledVehicleBPList;
 
-	ASumoWheeledVehicle* RandomWheeledVehicle = nullptr;
-
-	AWheeledVehiclePawn* EgoWheeledVehicle = nullptr;
 
 	/*UPROPERTY(EditAnywhere, Category = "SUMO Setup")
 		bool AllowSpawnEgoVehicle;
@@ -92,75 +125,48 @@ public:
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup", meta = (editcondition = "AllowSpawnEgoVehicle"))
 		TSubclassOf<AWheeledVehiclePawn> EgoWheeledVehicle;*/
 
+
+	// Route Id for ego wheeled vehicle to start.
 	UPROPERTY(EditAnywhere, Category = "SUMO Setup| EgoVehicle Setup", meta = (ToolTip = "Match the route id specify in *.rou.xml. \nExample: <route id=\"route0\" ...> "))
 		FString RouteId;
 	
 	
+	/**
+	 * Constructor for SumoGameMode.
+	 */
+	ASumoGameMode(const FObjectInitializer& ObjectInitializer);
+	
 
-	// Note CanEditChange is only available when compiling with the editor. Must add this or your builds might not work!
+	/**
+	 * Override default BeginPlay function. Called when the game starts or when objects are spawned
+	 */
+	virtual void BeginPlay() override;
+
+	/**
+	 * Override default Tick function. This function is called every frame.
+	 */
+	virtual void Tick(float DeltaTime) override;
+
+	/**
+	 * Override default Tick function. 
+	 * Note CanEditChange is only available when compiling with the editor. Must add this or your builds might not work!
+	 *
+	 */
 #if WITH_EDITOR
 	virtual bool CanEditChange(const UProperty* InProperty) const override;
 #endif
+	
 
-
+	// NOT USED
+	/// Variables modified in UpdateSUMOByMachineTime()
+	// Unreal time after start play the game
+	float TimeInWorld = 0;
 	/**
-	 * Unreal get the frame rate from SUMO and re-align Unreal time to update from SUMO
-	 * @param
-	 * @return
-	 */
-	void MatchFrameRatePerSecond();
-
-
-	bool SetupEgoVehicle();
-
-	/**
-	 * Update Unreal from SUMO based on Tick counter
-	 * @param
-	 * @return
-	 */
-	void UpdateSUMOByTickCount();
-
-	/**
+	 * NOT USED
 	 * Update Unreal from SUMO based on relative unreal project time (TimeInWorld)
 	 * @param
 	 * @return
 	 */
-	void UpdateSUMOByMachineTime();
+	void UpdateFromSUMOByMachineTime();
 
-	/**
-	 * TODO
-	 * @param
-	 * @return
-	 */
-	void UpdateVehicleFromSUMO();
-
-	void UpdateEgoWheeledVehicleToSUMO();
-
-	/**
-	 * Spawn random vehicle from the VehicleBPList in SumoDefaultPawn_BP in the UE
-	 * @param  vehicle Vehicle to spawn
-	 * @return    1 on success, -1 on fail
-	 */
-	bool SpawnRandomVehicle(FVehicleInformation& DepartedVehicle);
-
-
-	/**
-	 * Spawn random vehicle from the WheeledVehicleBPList in SumoDefaultPawn_BP in the UE
-	 * @param  vehicle Vehicle to spawn
-	 * @return    1 on success, -1 on fail
-	 */
-	bool SpawnRandomWheeledVehicle(FVehicleInformation& DepartedVehicle);
-
-public:
-	// Override original function defined by Unreal Engine
-	ASumoGameMode(const FObjectInitializer& ObjectInitializer);
-	/// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-
-private:
-	FString EgoWheeledVehicleID;
 };

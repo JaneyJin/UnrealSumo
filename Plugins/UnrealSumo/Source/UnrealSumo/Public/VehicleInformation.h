@@ -7,24 +7,25 @@ USTRUCT(BlueprintType)
 struct FVehicleInformation
 {
 	GENERATED_BODY()
+
 public:
-	FString VehicleId = ""; // std::string 
-	FVector VehiclePosition = FVector(0, 0, 0); // libsumo::TraCIPosition  
-	double VehicleSpeed = 0; // double 
-	// FColor VehicleColor = FColor(0, 0, 0, 1); // libsumo::TraCIColor //NOT USE
+	/// VehicleInformation store vehicle information retreive from SUMO for each vehicle departed in SUMO scenario. Units and data format changed to Unreal defined format.
+
+	// Wheeled vehicle identity set up in SUMO. Format changed from 'std::string' to 'FString'.
+	FString VehicleId = ""; 
+
+	// Vehicle position in Unreal after convert units. Format changed from 'libsumo::TraCIPosition' to 'FVector'.
+	FVector VehiclePosition = FVector(0, 0, 0); 
+
+	// Speed for wheeled vehicle. Unit is cm/s.
+	double VehicleSpeed = 0; 
+
+	// FRotator(Pitch, Yaw, Roll). Only modified the Yaw. Yaw is rotation around the up axis (around Z axis), Running in circles 0=East, +North, -South.
 	FRotator VehicleAngle = FRotator(0,0,0);
-	bool EgoWheeledVehicle = false;
-
-
+	
+	/* Logout vehicle information in one timestep. */
 	void print() {
 		UE_LOG(LogTemp, Warning, TEXT("VehicleID: %s; VehiclePosition: %s; VehicleSpeed: %f; VehicleAngle: %s"), *VehicleId, *VehiclePosition.ToString(), VehicleSpeed, *VehicleAngle.ToString());
 	}
 
 };
-
-//std::ostream& operator<<(std::ostream& os, const FVehicleInformation& vehicle) {
-//	return os << "VehicleID: " << TCHAR_TO_UTF8(*vehicle.VehicleId) << std::endl
-//		<< "VehiclePosition: " << TCHAR_TO_UTF8(*vehicle.VehiclePosition.ToString()) << std::endl
-//		<< "VehicleSpeed: " << vehicle.VehicleSpeed << std::endl
-//		<< "VehicleAngle:" << TCHAR_TO_UTF8(*vehicle.VehicleAngle.ToString()) << std::endl;
-//}

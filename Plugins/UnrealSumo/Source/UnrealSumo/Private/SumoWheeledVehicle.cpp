@@ -5,12 +5,23 @@
 #include "Client.h"
 #include "Components/InputComponent.h"
 #include "Engine/SkeletalMesh.h"
+#include "SumoGameInstance.h"
 #include "WheeledVehicleMovementComponent4W.h"
 
 ASumoWheeledVehicle::ASumoWheeledVehicle() {
 	client = nullptr;
 	VehicleId = "";
+}
 
+bool ASumoWheeledVehicle::InitializeWheeledVehicle(FVehicleInformation &VehicleToSet) {
+
+	this->VehicleId = VehicleToSet.VehicleId;
+	
+	if (client && VehicleId.IsEmpty()) {
+		/* Fail to initialize */
+		return false; 
+	}
+	return true;
 }
 
 void ASumoWheeledVehicle::BeginPlay()
@@ -21,56 +32,52 @@ void ASumoWheeledVehicle::BeginPlay()
 	if (!GetController()) {
 		Destroy();
 	}
-	/*else {
-		MoveForward(ThrottleVal);
-	}*/
-	UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle beginplay"));
-	UE_LOG(LogTemp, Log, TEXT("GetVehicleMovement: %s; GetVehicleMovementComponent: %s"), *GetVehicleMovement()->GetName(), *GetVehicleMovementComponent()->GetName());
+	
+	SumoGameInstance = Cast<USumoGameInstance>(GetGameInstance());
+	if (SumoGameInstance) {
+		this->client = SumoGameInstance->client;
+	}
+	
+	// UE_LOG(LogTemp, Log, TEXT("GetVehicleMovement: %s; GetVehicleMovementComponent: %s"), *GetVehicleMovement()->GetName(), *GetVehicleMovementComponent()->GetName());
 }
 
 void ASumoWheeledVehicle::Tick(float Delta)
 {
 	Super::Tick(Delta);
-	// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle tick"))
-
-	if (GetController()) {
-		//GetVehicleMovementComponent()->SetSteeringInput(10);
-		UpdateSUMOByTickCount(Delta);
+	/* Unreal Engine frame rate must be higher than SUMO frame rate. */
+	/* Check whether the socket connection close */
+	if (GetController() && SumoGameInstance && SumoGameInstance->client && !SumoGameInstance->SUMOToUnrealFrameRate.UnrealTickSlower) {
+		UpdateFromSUMOByTickCount();
 	}
 	
 }
 
-void ASumoWheeledVehicle::UpdateSUMOByTickCount(float Delta) {
-	if (UnrealFPS.TickCount < UnrealFPS.UETickBetweenSUMOUpdates) {
-		// UE_LOG(LogTemp, Display, TEXT("GameMode Tick() %d"), UnrealFPS.TickCount)
-		UnrealFPS.TickCount++;
-	}
-	else if (UnrealFPS.TickCount == UnrealFPS.UETickBetweenSUMOUpdates) {
+void ASumoWheeledVehicle::UpdateFromSUMOByTickCount() {
+	if (SumoGameInstance->SUMOToUnrealFrameRate.TickCount == SumoGameInstance->SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates) {
 		// UE_LOG(LogTemp, Warning, TEXT("%f :Update from SUMO. NextTimeToUpdate %f"), TimeInWorld, NextTimeToUpdate)
-		// UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle -> WheeledVehicle Tick() %d. Update from SUMo."), UnrealFPS.TickCount)
-
-		UnrealFPS.TickCount = 1;
-		UpdateFromSUMO(Delta);
-	}
-	else {
-		UE_LOG(LogTemp, Display, TEXT("Tick calculation is wrong."))
+		UE_LOG(LogTemp, Warning, TEXT("SumoWheeledVehicle -> WheeledVehicle Tick() %d. Update from SUMo."), SumoGameInstance->SUMOToUnrealFrameRate.TickCount)
+		UpdateFromSUMO();
 	}
 
 }
 
-void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
+void ASumoWheeledVehicle::UpdateFromSUMO() {
 
 	std::string VID(TCHAR_TO_UTF8(*VehicleId));
 	// UE_LOG(LogTemp, Display, TEXT("GetOwner %s :: VehicleId %s "), *ObjectName, *VID);
 
-	int ArrivedNumber = client->simulation.getArrivedNumber();
-	if (ArrivedNumber != 0) {
-		std::vector<std::string> ArrivedList = client->simulation.getArrivedIDList();
-		for (std::vector<std::string>::iterator it = ArrivedList.begin(); it != ArrivedList.end(); ++it) {
-			if (*it == VID) {
-				DestroyVehicle();
-				return;
-			}
+	
+	if (SumoGameInstance->ArrivedNumber > 0) {
+		std::vector<std::string> ArrivedList = SumoGameInstance->ArrivedList;
+		std::vector<std::string>::iterator it = std::find(ArrivedList.begin(), ArrivedList.end(), VID);
+		if ( it != ArrivedList.end()) {
+			/* Destroy this SumoWheeledVehicle class. */
+			DestroyVehicle();
+			/* Deleted the destroyed vehicle in the arrived list. */
+			ArrivedList.erase(it);
+			SumoGameInstance->ArrivedList = ArrivedList;
+			SumoGameInstance->ArrivedNumber = SumoGameInstance->ArrivedNumber - 1;
+			return;
 		}
 
 	}
@@ -97,12 +104,9 @@ void ASumoWheeledVehicle::UpdateFromSUMO(float Delta) {
 		}
 	}
 	
+	// TODO: Vehicle dynamics controller
+	// MoveForward(speed);
 
-	// auto VehicleSpeed = client->vehicle.getSpeed(VID);
-	//auto VehicleAngle = client->vehicle.getAngle(VID) - 90;  // 90 degrees off between UE and SUMO
-	// auto MyVehicle = Owner->GetName();
-	// auto Time = GetWorld()->GetTimeSeconds();
-	// UE_LOG(LogTemp, Warning, TEXT("%f: %s is at %s"), Time, *MyVehicle, *VehicleNewPosition.ToString());
 }
 
 bool ASumoWheeledVehicle::DestroyVehicle() {
@@ -117,16 +121,7 @@ bool ASumoWheeledVehicle::DestroyVehicle() {
 	return false;
 }
 
-bool ASumoWheeledVehicle::InitializeWheeledVehicle(FVehicleInformation &VehicleToSet, Client* ClientToSet, FrameRateSyn &SUMOToUnrealFrameRate) {
 
-	this->VehicleId = VehicleToSet.VehicleId;
-	this->client = ClientToSet;
-	this->UnrealFPS = SUMOToUnrealFrameRate;
-	if (client && VehicleId.IsEmpty()) {
-		return false; // Fail to initialize
-	}
-	return true;
-}
 
 void ASumoWheeledVehicle::MoveForward(float Val)
 {
@@ -148,21 +143,3 @@ void ASumoWheeledVehicle::OnHandbrakeReleased()
 	GetVehicleMovementComponent()->SetHandbrakeInput(false);
 }
 
-void ASumoWheeledVehicle::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-	// set up gameplay key bindings
-	check(PlayerInputComponent);
-
-	PlayerInputComponent->BindAxis("MoveForward", this, &ASumoWheeledVehicle::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &ASumoWheeledVehicle::MoveRight);
-	PlayerInputComponent->BindAxis("LookUp");
-	PlayerInputComponent->BindAxis("LookRight");
-
-	PlayerInputComponent->BindAction("Handbrake", IE_Pressed, this, &ASumoWheeledVehicle::OnHandbrakePressed);
-	PlayerInputComponent->BindAction("Handbrake", IE_Released, this, &ASumoWheeledVehicle::OnHandbrakeReleased);
-	// PlayerInputComponent->BindAction("SwitchCamera", IE_Pressed, this, &ASumoWheeledVehicle::OnToggleCamera);
-
-	// PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ASumoWheeledVehicle::OnResetVR);
-}

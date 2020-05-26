@@ -10,13 +10,15 @@ USumoGameInstance::USumoGameInstance(const FObjectInitializer& ObjectInitializer
 	EgoWheeledVehicleId = "";
 }
 
-void USumoGameInstance::SetSumoGameInstance(Client* client, FString EgoWheeledVehicleId, FrameRateSyn SUMOToUnrealFrameRate) {
+void USumoGameInstance::SetSumoGameInstance(Client* client, FString EgoWheeledVehicleId) {
 	this->client = client;
 	this->EgoWheeledVehicleId = EgoWheeledVehicleId;
-	this->SUMOToUnrealFrameRate = SUMOToUnrealFrameRate;
+	this->ArrivedNumber = -1;
 	UE_LOG(LogTemp, Warning, TEXT("# of tick between SUMOUpdate: %d"), SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates)
 }
 
+
 void USumoGameInstance::CloseSocket() {
+	SUMOToUnrealFrameRate.UnrealTickSlower = false;
 	client = nullptr;
 }
