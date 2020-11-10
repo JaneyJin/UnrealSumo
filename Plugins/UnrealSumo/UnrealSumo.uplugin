@@ -1,33 +1,24 @@
 {
-  "FileVersion": 3,
-  "Version": 1,
-  "VersionName": "1.0",
-  "FriendlyName": "UnrealSumo",
-  "Description": "",
-  "Category": "Other",
-  "CreatedBy": "Yishen",
-  "CreatedByURL": "",
-  "DocsURL": "",
-  "MarketplaceURL": "",
-  "SupportURL": "",
-  "CanContainContent": true,
-  "IsBetaVersion": false,
-  "Installed": false,
-  "Modules": [
-    {
-      "Name": "UnrealSumo",
-      "Type": "Runtime",
-      "LoadingPhase": "Default",
-      "AdditionalDependencies": [
-        "Engine"
-      ]
-
-    }
-  ],
-  "Plugins": [
-    {
-      "Name": "PhysXVehicles",
-      "Enabled": true
-    }
-  ]
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "UnrealSumo",
+	"Description": "",
+	"Category": "Other",
+	"CreatedBy": "Yishen Jin",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "UnrealSumo",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
 }

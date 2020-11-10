@@ -26,10 +26,9 @@ public class UnrealSumo : ModuleRules
 			new string[]
 			{
 				"Core",
-                 "HeadMountedDisplay",
-
-            }
-            );
+				// ... add other public dependencies that you statically link with here ...
+			}
+			);
 			
 		
 		PrivateDependencyModuleNames.AddRange(
@@ -39,8 +38,7 @@ public class UnrealSumo : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-                "PhysXVehicles",
-               
+				"PhysXVehicles", // Added for WheeledVehicle
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);
@@ -52,5 +50,7 @@ public class UnrealSumo : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
+
+		bEnableExceptions = true; // Added for enable Exception
 	}
 }
