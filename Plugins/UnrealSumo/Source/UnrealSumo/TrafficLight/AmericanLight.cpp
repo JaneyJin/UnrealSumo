@@ -6,118 +6,24 @@
 AAmericanLight::AAmericanLight(const FObjectInitializer &ObjectInitializer)
         : Super(ObjectInitializer)
 {
-
-    // SingleLightPosition
-    // FTrafficLightStruct TLStruct;
-    // TLStruct.Position.SetLocation(FVector(-15,0,350));
-
-    FTrafficLightStruct TLStruct;
-    TLStruct.Description = "CenterPiece";
-    TLStruct.Position.SetLocation(FVector(-800,0,640));
-    Heads.Add(TLStruct);
-
-    TLStruct.Description = "RightPiece";
-    TLStruct.Position.SetLocation(FVector(-500,0,640));
-    Heads.Add(TLStruct);
-
-    TLStruct.Description = "LeftPiece";
-    TLStruct.Position.SetLocation(FVector(-1150,0,640));
-    for(int i = 0; i < TLStruct.Lights.Num(); i++){
-        TLStruct.Lights[i].Masked = true;
-        TLStruct.Lights[i].Rotation = 180.f;
-    }
-    Heads.Add(TLStruct);
-
-
-    for(int i = 0; i < Heads.Num(); i++){
-        FTrafficLightStruct head = Heads[i];
-        UStaticMeshComponent* BotCoverMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>( *(Heads[i].Description.Left(Heads[i].Description.Find("Piece")) + "RoadSign_BotCover"));
-        UStaticMesh* Mesh = LoadObject<UStaticMesh>(nullptr, TEXT("StaticMesh'/UnrealSumo/TrafficLight/Static/SM_TL_BotCover.SM_TL_BotCover'"));;
-
-        BotCoverMeshComponent->SetupAttachment(RootComponent);
-        BotCoverMeshComponent->SetRelativeTransform(head.Position);
-        // UE_LOG(LogTemp, Warning, TEXT("Position %s"), *head.Position.GetLocation().ToString())
-        BotCoverMeshComponent->SetStaticMesh(Mesh);
-
-        TArray<FTrafficLightPieces> lights = head.Lights;
-        for(int j = 0; j < lights.Num(); j++){
-            FTransform transform = lights[j].RelativeTransform;
-            UStaticMesh* mesh = lights[j].Mesh;
-
-            FString lightcolor = UEnum::GetValueAsString(lights[j].LightColor);
-
-            int32 CharacterIndex = lightcolor.FindLastChar(':',CharacterIndex);
-            UStaticMeshComponent* LightMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(*(Heads[i].Description.Left(Heads[i].Description.Find("Piece")) + lightcolor.RightChop(CharacterIndex + 1) + "Light"));
-            LightMeshComponent->SetupAttachment(BotCoverMeshComponent);
-            LightMeshComponent->SetStaticMesh(mesh);
-            LightMeshComponent->SetRelativeTransform(lights[j].RelativeTransform);
-
-            if(lights[j].Masked){
-                DynMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("MaterialInstanceConstant'/UnrealSumo/TrafficLight/Static/M_StreetlightsMasked.M_StreetlightsMasked'"));
-            }else{
-                DynMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/UnrealSumo/TrafficLight/Static/M_StreetlightsMaster.M_StreetlightsMaster'"));
-            }
-
-            // UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, NULL);
-            CurrentMaterial = UMaterialInstanceDynamic::Create(DynMaterial, NULL);
-
-            CurrentMaterial->SetTextureParameterValue(FName(TEXT("LightMask")),lights[j].Mask);
-            CurrentMaterial->SetScalarParameterValue("Angle",lights[j].Rotation);
-
-            switch(lights[j].LightColor){
-                case ETrafficLightState::Red:
-                    CurrentMaterial->SetVectorParameterValue("LightColor",FLinearColor::Red);
-                    if(head.Description.Contains("Left")){
-                        LeftLightPiece.RedLightsMaterial.Add(CurrentMaterial);
-                    }else if(head.Description.Contains("Center")){
-                        CenterLightPiece.RedLightsMaterial.Add(CurrentMaterial);
-                    }else if(head.Description.Contains("Right")){
-                        RightLightPiece.RedLightsMaterial.Add(CurrentMaterial);
-                    }
-                    break;
-                case ETrafficLightState::Yellow:
-                    CurrentMaterial->SetVectorParameterValue("LightColor",FLinearColor::Yellow);
-                    if(head.Description.Contains("Left")){
-                        LeftLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
-                    }else if(head.Description.Contains("Center")){
-                        CenterLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
-                    }else if(head.Description.Contains("Right")){
-                        RightLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
-                    }
-                    break;
-                case ETrafficLightState::Green:
-                    CurrentMaterial->SetVectorParameterValue("LightColor",FLinearColor::Green);
-                    if(head.Description.Contains("Left")){
-                        LeftLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
-                    }else if(head.Description.Contains("Center")){
-                        CenterLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
-                    }else if(head.Description.Contains("Right")){
-                        RightLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
-                    }
-                    break;
-                default:
-                UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
-                    break;
-            }
-
-            LightMeshComponent->SetMaterial(1,CurrentMaterial);
-
-        }
-
-    }
-
-    LeftLightPiece.LightPieceDescription = "LeftPieces";
-    CenterLightPiece.LightPieceDescription = "CenterPieces";
-    RightLightPiece.LightPieceDescription = "RightPieces";
 }
 
 
 void AAmericanLight::BeginPlay() {
     Super::BeginPlay();
-    UE_LOG(LogTemp, Warning, TEXT("%s  %f  %f  %f"),*LeftLightPiece.LightPieceDescription, LeftLightPiece.RedTick, LeftLightPiece.YellowTick, LeftLightPiece.GreenTick)
-    UE_LOG(LogTemp, Warning, TEXT("%s  %f  %f  %f"),*CenterLightPiece.LightPieceDescription, CenterLightPiece.RedTick, CenterLightPiece.YellowTick, CenterLightPiece.GreenTick)
-    UE_LOG(LogTemp, Warning, TEXT("%s  %f  %f  %f"),*RightLightPiece.LightPieceDescription, RightLightPiece.RedTick, RightLightPiece.YellowTick, RightLightPiece.GreenTick)
+
+    if(MaterialIsNotValid(LeftLightPiece) && MaterialIsNotValid(CenterLightPiece) && MaterialIsNotValid(RightLightPiece)){
+        
+    }
 }
+
+bool AAmericanLight::MaterialIsNotValid(FAmericanLightPiece LightPiece){
+    if(LightPiece.GreenLightsMaterial.Num() < 1 || LightPiece.YellowLightsMaterial.Num() < 1 || LightPiece.RedLightsMaterial.Num() < 1){
+        return true;
+    }
+    return false;
+}
+
 
 void AAmericanLight::Tick(float DeltaSeconds)
 {
@@ -134,8 +40,8 @@ void AAmericanLight::TickByCount(){
     RightLightPiece.ElapsedTick = RightLightPiece.ElapsedTick + 1;
 
     SwitchAmericanLightPiece(LeftLightPiece);
-    // SwitchAmericanLightPiece(CenterLightPiece);
-    // SwitchAmericanLightPiece(RightLightPiece);
+    SwitchAmericanLightPiece(CenterLightPiece);
+   SwitchAmericanLightPiece(RightLightPiece);
 }
 
 void AAmericanLight::SwitchAmericanLightPiece(FAmericanLightPiece& LightPiece){
@@ -198,30 +104,19 @@ void AAmericanLight::OnAmericanLightStateChanged(FAmericanLightPiece& LightPiece
     switch(LightPiece.State)
     {
         case ETrafficLightState::Red:
-
-//            SetLightsMaterialOnAndOff(LightPiece.RedLightsMaterial, 1);
-//            SetLightsMaterialOnAndOff(LightPiece.YellowLightsMaterial, 0);
-//            SetLightsMaterialOnAndOff(LightPiece.GreenLightsMaterial, 0);
-
- //           for(int i = 0; i < LightPiece.RedLightsMaterial.Num(); i++){
-//                LightPiece.RedLightsMaterial[i]->SetScalarParameterValue("On/Off",1);
-//            }
-//            for(int j = 0; j < LightPiece.YellowLightsMaterial.Num(); j++){
-//                LightPiece.RedLightsMaterial[j]->SetScalarParameterValue("On/Off",0);
-//            }
-//            for(int z = 0; z < LightPiece.GreenLightsMaterial.Num(); z++){
-//                LightPiece.RedLightsMaterial[z]->SetScalarParameterValue("On/Off",0);
-//            }
+            SetLightsMaterialOnAndOff(LightPiece.RedLightsMaterial, 1);
+            SetLightsMaterialOnAndOff(LightPiece.YellowLightsMaterial, 0);
+            SetLightsMaterialOnAndOff(LightPiece.GreenLightsMaterial, 0);
             break;
         case ETrafficLightState::Yellow:
-//            SetLightsMaterialOnAndOff(LightPiece.RedLightsMaterial, 0);
-//            SetLightsMaterialOnAndOff(LightPiece.YellowLightsMaterial, 1);
-//            SetLightsMaterialOnAndOff(LightPiece.GreenLightsMaterial, 0);
+            SetLightsMaterialOnAndOff(LightPiece.RedLightsMaterial, 0);
+            SetLightsMaterialOnAndOff(LightPiece.YellowLightsMaterial, 1);
+            SetLightsMaterialOnAndOff(LightPiece.GreenLightsMaterial, 0);
             break;
         case ETrafficLightState::Green:
-//            SetLightsMaterialOnAndOff(LightPiece.RedLightsMaterial, 0);
-//            SetLightsMaterialOnAndOff(LightPiece.YellowLightsMaterial, 0);
-//            SetLightsMaterialOnAndOff(LightPiece.GreenLightsMaterial, 1);
+            SetLightsMaterialOnAndOff(LightPiece.RedLightsMaterial, 0);
+            SetLightsMaterialOnAndOff(LightPiece.YellowLightsMaterial, 0);
+            SetLightsMaterialOnAndOff(LightPiece.GreenLightsMaterial, 1);
             break;
         default:
             UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
@@ -232,6 +127,150 @@ void AAmericanLight::OnAmericanLightStateChanged(FAmericanLightPiece& LightPiece
 
 void AAmericanLight::SetLightsMaterialOnAndOff(TArray<UMaterialInstanceDynamic*>& LightsMaterial,float Value){
     for(int i = 0; i < LightsMaterial.Num(); i++){
-        LightsMaterial[i]->SetScalarParameterValue("On/Off",Value);
+        if( LightsMaterial[i]){
+            // LightsMaterial[i]->GetScalarParameterValue(FName(TEXT("On/Off")),OutValue);
+            LightsMaterial[i]->SetScalarParameterValue("On/Off",Value);
+        }
     }
+}
+
+void AAmericanLight::SetLightMaterial(UMaterialInstanceDynamic* CurrentMaterial, ETrafficLightState InState, FString LightDescription){
+    // UE_LOG(LogTemp, Error, TEXT("%s; %s; %s"), CurrentMaterial, *(UEnum::GetValueAsString(InState)), *LightDescription);
+
+    switch(InState){
+        case ETrafficLightState::Red:
+            if(LightDescription.Contains("Left")){
+                LeftLightPiece.RedLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Center")){
+                CenterLightPiece.RedLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Right")){
+                RightLightPiece.RedLightsMaterial.Add(CurrentMaterial);
+            }
+            break;
+        case ETrafficLightState::Yellow:
+            if(LightDescription.Contains("Left")){
+                LeftLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Center")){
+                CenterLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Right")){
+                RightLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
+            }
+            break;
+        case ETrafficLightState::Green:
+            if(LightDescription.Contains("Left")){
+                LeftLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Center")){
+                CenterLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Right")){
+                RightLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
+            }
+            break;
+        default:
+            UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+            break;
+    }
+
+}
+
+// NOT USE
+void AAmericanLight::ConstructorScript(){
+    UMaterialInstanceDynamic* NewMaterial;
+    UMaterialInterface* DynMaterial;
+
+
+    FTrafficLightStruct TLStruct;
+    TLStruct.Description = "CenterPiece";
+    TLStruct.Position.SetLocation(FVector(-800,0,640));
+    Heads.Add(TLStruct);
+
+    TLStruct.Description = "RightPiece";
+    TLStruct.Position.SetLocation(FVector(-500,0,640));
+    Heads.Add(TLStruct);
+
+    TLStruct.Description = "LeftPiece";
+    TLStruct.Position.SetLocation(FVector(-1150,0,640));
+    for(int i = 0; i < TLStruct.Lights.Num(); i++){
+        TLStruct.Lights[i].Masked = true;
+        TLStruct.Lights[i].Rotation = 180.f;
+    }
+    Heads.Add(TLStruct);
+
+
+    for(int i = 0; i < Heads.Num(); i++){
+        FTrafficLightStruct head = Heads[i];
+        UStaticMeshComponent* BotCoverMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>( *(Heads[i].Description.Left(Heads[i].Description.Find("Piece")) + "RoadSign_BotCover"));
+        UStaticMesh* Mesh = LoadObject<UStaticMesh>(nullptr, TEXT("StaticMesh'/UnrealSumo/TrafficLight/Static/SM_TL_BotCover.SM_TL_BotCover'"));;
+
+        BotCoverMeshComponent->SetupAttachment(RootComponent);
+        BotCoverMeshComponent->SetRelativeTransform(head.Position);
+        // UE_LOG(LogTemp, Warning, TEXT("Position %s"), *head.Position.GetLocation().ToString())
+        BotCoverMeshComponent->SetStaticMesh(Mesh);
+
+        TArray<FTrafficLightPieces> lights = head.Lights;
+        for(int j = 0; j < lights.Num(); j++){
+            FTransform transform = lights[j].RelativeTransform;
+            UStaticMesh* mesh = lights[j].Mesh;
+
+            FString lightcolor = UEnum::GetValueAsString(lights[j].LightColor);
+
+            int32 CharacterIndex = lightcolor.FindLastChar(':',CharacterIndex);
+            UStaticMeshComponent* LightMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(*(Heads[i].Description.Left(Heads[i].Description.Find("Piece")) + lightcolor.RightChop(CharacterIndex + 1) + "Light"));
+            LightMeshComponent->SetupAttachment(BotCoverMeshComponent);
+            LightMeshComponent->SetStaticMesh(mesh);
+            LightMeshComponent->SetRelativeTransform(lights[j].RelativeTransform);
+
+            if(lights[j].Masked){
+                DynMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("MaterialInstanceConstant'/UnrealSumo/TrafficLight/Static/M_StreetlightsMasked.M_StreetlightsMasked'"));
+            }else{
+                DynMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/UnrealSumo/TrafficLight/Static/M_StreetlightsMaster.M_StreetlightsMaster'"));
+            }
+
+            // UMaterialInstanceDynamic* DynMaterial = UMaterialInstanceDynamic::Create(Material, NULL);
+            NewMaterial = UMaterialInstanceDynamic::Create(DynMaterial, NULL);
+
+            NewMaterial->SetTextureParameterValue(FName(TEXT("LightMask")),lights[j].Mask);
+            NewMaterial->SetScalarParameterValue("Angle",lights[j].Rotation);
+
+            switch(lights[j].LightColor){
+                case ETrafficLightState::Red:
+                    NewMaterial->SetVectorParameterValue("LightColor",FLinearColor::Red);
+                    if(head.Description.Contains("Left")){
+                        LeftLightPiece.RedLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Center")){
+                        CenterLightPiece.RedLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Right")){
+                        RightLightPiece.RedLightsMaterial.Add(NewMaterial);
+                    }
+                    break;
+                case ETrafficLightState::Yellow:
+                    NewMaterial->SetVectorParameterValue("LightColor",FLinearColor::Yellow);
+                    if(head.Description.Contains("Left")){
+                        LeftLightPiece.YellowLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Center")){
+                        CenterLightPiece.YellowLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Right")){
+                        RightLightPiece.YellowLightsMaterial.Add(NewMaterial);
+                    }
+                    break;
+                case ETrafficLightState::Green:
+                    NewMaterial->SetVectorParameterValue("LightColor",FLinearColor::Green);
+                    if(head.Description.Contains("Left")){
+                        LeftLightPiece.GreenLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Center")){
+                        CenterLightPiece.GreenLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Right")){
+                        RightLightPiece.GreenLightsMaterial.Add(NewMaterial);
+                    }
+                    break;
+                default:
+                UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+                    break;
+            }
+
+            LightMeshComponent->SetMaterial(1,NewMaterial);
+
+        }
+
+    }
+
 }

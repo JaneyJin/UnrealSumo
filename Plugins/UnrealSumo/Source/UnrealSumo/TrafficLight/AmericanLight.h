@@ -81,9 +81,6 @@ struct FAmericanLightPiece
 
 public:
     UPROPERTY(Category = "American Light", EditAnywhere)
-    FString LightPieceDescription;
-
-    UPROPERTY(Category = "American Light", EditAnywhere)
     double GreenTick = 10.0f;
     UPROPERTY(Category = "American Light", EditAnywhere)
     double YellowTick = 2.0f;
@@ -95,11 +92,8 @@ public:
     UPROPERTY(Category = "American Light", EditAnywhere)
     ETrafficLightState State = ETrafficLightState::Red;
 
-    UPROPERTY(Category = "American Light", EditAnywhere)
     TArray<UMaterialInstanceDynamic*> RedLightsMaterial;
-    UPROPERTY(Category = "American Light", EditAnywhere)
     TArray<UMaterialInstanceDynamic*> YellowLightsMaterial;
-    UPROPERTY(Category = "American Light", EditAnywhere)
     TArray<UMaterialInstanceDynamic*> GreenLightsMaterial;
 
 };
@@ -113,19 +107,6 @@ class UNREALSUMO_API AAmericanLight : public ATrafficLightBase
 private:
     // DELETE IT LATER
     int32 count = 0;
-
-//    double LeftElapsedTick = 0;
-//    double CenterElapsedTick = 0;
-//    double RightElapsedTick = 0;
-
-//    UPROPERTY(Category = "Traffic Light", EditAnywhere)
-//    ETrafficLightState LeftState = ETrafficLightState::Red;
-//
-//    UPROPERTY(Category = "Traffic Light", EditAnywhere)
-//    ETrafficLightState CenterState = ETrafficLightState::Red;
-//
-//    UPROPERTY(Category = "Traffic Light", EditAnywhere)
-//    ETrafficLightState RightState = ETrafficLightState::Red;
 
     void SwitchAmericanLightPiece(FAmericanLightPiece& LightPieceTick);
 
@@ -148,8 +129,6 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AmericanLightsDetails")
     FAmericanLightPiece RightLightPiece;
 
-
-
     void SetAmericanLightState(FAmericanLightPiece& LightPieceTick, const ETrafficLightState InState);
 
     void TickByCount();
@@ -160,10 +139,13 @@ public:
     UFUNCTION(Category = "American Light", BlueprintCallable)
     void OnAmericanLightStateChanged(FAmericanLightPiece& LightPiece);
 
+    UFUNCTION(Category = "American Light", BlueprintCallable)
+    void SetLightMaterial(UMaterialInstanceDynamic* CurrentMaterial, ETrafficLightState InState, FString LightDescription);
+
 private:
-    UMaterialInstanceDynamic* CurrentMaterial;
-
-    UMaterialInterface* DynMaterial;
-
     void SetLightsMaterialOnAndOff(TArray<UMaterialInstanceDynamic*>& LightsMaterial,float Value);
+
+    bool MaterialIsNotValid(FAmericanLightPiece LightPiece);
+
+    void ConstructorScript();
 };
