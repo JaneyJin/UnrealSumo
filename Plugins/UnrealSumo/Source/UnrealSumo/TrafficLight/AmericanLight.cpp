@@ -3,9 +3,16 @@
 
 #include "AmericanLight.h"
 #include "Materials/MaterialInstanceDynamic.h"
+#include "UnrealSumo/World/SumoGameMode.h"
+#include "UnrealSumo/World/SumoGameInstance.h"
+
 AAmericanLight::AAmericanLight(const FObjectInitializer &ObjectInitializer)
         : Super(ObjectInitializer)
 {
+    PrimaryActorTick.bCanEverTick = true;
+    LeftLightPiece.LightPieceDescription = "LeftPiece";
+    CenterLightPiece.LightPieceDescription = "CenterPiece";
+    RightLightPiece.LightPieceDescription = "RightPiece";
 }
 
 
@@ -13,8 +20,30 @@ void AAmericanLight::BeginPlay() {
     Super::BeginPlay();
 
     if(MaterialIsNotValid(LeftLightPiece) && MaterialIsNotValid(CenterLightPiece) && MaterialIsNotValid(RightLightPiece)){
-        
+        UE_LOG(LogTemp, Error, TEXT("Failed to load light materials"))
     }
+
+    if(CrossWalk.CrossWalkMaterial == nullptr){
+        UE_LOG(LogTemp, Error, TEXT("Failed to load cross walk light materials"))
+    }
+
+    auto GameMode = GetWorld()->GetAuthGameMode();
+    if(!GameMode->GetName().Contains("SumoGameMode")){
+        SynBySUMO = false;
+        return;
+    }
+
+    ASumoGameMode* SumoGameMode = Cast<ASumoGameMode>(GameMode);
+
+    if(!GameMode->HasActorBegunPlay()){
+        GameMode->DispatchBeginPlay();
+    }
+
+    if(!SumoGameMode->SynBySUMOTrafficLight()){
+        SynBySUMO = false;
+        return;
+    }
+    SumoGameInstance = Cast<USumoGameInstance>(GetGameInstance());
 }
 
 bool AAmericanLight::MaterialIsNotValid(FAmericanLightPiece LightPiece){
@@ -27,34 +56,115 @@ bool AAmericanLight::MaterialIsNotValid(FAmericanLightPiece LightPiece){
 
 void AAmericanLight::Tick(float DeltaSeconds)
 {
-    count++;
-    if(count == 10){
+
+    if (!SynBySUMO) {
+
+        TickByMachineTime(DeltaSeconds);
+        return;
+    }
+
+    if (SumoGameInstance == nullptr || SumoGameInstance->SUMOToUnrealFrameRate.UnrealTickSlower) {
+
+        return;
+    }
+
+    if(SumoGameInstance->SUMOToUnrealFrameRate.TickCount == SumoGameInstance->SUMOToUnrealFrameRate.UETickBetweenSUMOUpdates){
+
         TickByCount();
-        count = 0;
+    }
+
+}
+
+void AAmericanLight::TickByMachineTime(float DeltaSeconds) {
+    SwitchAmericanLightPieceByMachineTime(DeltaSeconds, LeftLightPiece);
+    SwitchAmericanLightPieceByMachineTime(DeltaSeconds, CenterLightPiece);
+    SwitchAmericanLightPieceByMachineTime(DeltaSeconds, RightLightPiece);
+
+    if(CrossWalk.ContainsCrossWalk){
+        SwitchCrossWalkPieceByMachineTime(CrossWalk, DeltaSeconds);
     }
 }
 
-void AAmericanLight::TickByCount(){
-    LeftLightPiece.ElapsedTick = LeftLightPiece.ElapsedTick + 1;
-    CenterLightPiece.ElapsedTick = CenterLightPiece.ElapsedTick + 1;
-    RightLightPiece.ElapsedTick = RightLightPiece.ElapsedTick + 1;
+void AAmericanLight::SwitchAmericanLightPieceByMachineTime(float DeltaSeconds, FAmericanLightPiece& LightPiece){
+    LightPiece.ElapsedTime += DeltaSeconds;
 
-    SwitchAmericanLightPiece(LeftLightPiece);
-    SwitchAmericanLightPiece(CenterLightPiece);
-   SwitchAmericanLightPiece(RightLightPiece);
+    double ChangeTime;
+    switch (LightPiece.State)
+    {
+        case ETrafficLightState::Red:
+            ChangeTime = LightPiece.RedTime[LightPiece.RedIndex];
+            break;
+        case ETrafficLightState::Yellow:
+            ChangeTime = LightPiece.YellowTime[LightPiece.YellowIndex];
+            break;
+        case ETrafficLightState::Green:
+            ChangeTime = LightPiece.GreenTime[LightPiece.GreenIndex];
+            break;
+        default:
+        UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+            SetAmericanLightState(LightPiece, ETrafficLightState::Red);
+            return;
+    }
+
+    if (LightPiece.ElapsedTime > ChangeTime)
+    {
+        SwitchAmericanLightState(LightPiece);
+        LightPiece.ElapsedTime = 0.0f;
+    }
+
+
 }
 
-void AAmericanLight::SwitchAmericanLightPiece(FAmericanLightPiece& LightPiece){
+
+void AAmericanLight::TickByCount(){
+
+    SwitchAmericanLightPieceByTickCount(LeftLightPiece);
+    SwitchAmericanLightPieceByTickCount(CenterLightPiece);
+    SwitchAmericanLightPieceByTickCount(RightLightPiece);
+
+    if(CrossWalk.ContainsCrossWalk){
+        SwitchCrossWalkPieceByTickCount(CrossWalk);
+    }
+}
+
+
+void AAmericanLight::SwitchCrossWalkPieceByMachineTime(FCrossWalkPiece& CrossWalkPiece, float DeltaSeconds){
+    CrossWalkPiece.ElapsedTime += DeltaSeconds;
+    double ChangeTime;
+    switch (CrossWalk.State) {
+        case ECrossWalkState::Red:
+            ChangeTime = CrossWalkPiece.RedTime;
+            break;
+        case ECrossWalkState::White:
+            ChangeTime = CrossWalkPiece.WhiteTime;
+            break;
+        default:
+        UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+            SetCrossWalkLightState(CrossWalkPiece, ECrossWalkState::Red);
+            return;
+    }
+
+    if(CrossWalk.ElapsedTime > ChangeTime){
+        SwitchCrossWalkLightState(CrossWalk);
+        CrossWalk.ElapsedTime = 0.0f;
+    }
+}
+
+
+void AAmericanLight::SwitchAmericanLightPieceByTickCount(FAmericanLightPiece& LightPiece){
+
+    LightPiece.ElapsedTime = LightPiece.ElapsedTime + 1;
+
     float ChangeTick;
     switch (LightPiece.State) {
         case ETrafficLightState::Red:
-            ChangeTick = LightPiece.RedTick;
+            ChangeTick = LightPiece.RedTime[LightPiece.RedIndex];
             break;
         case ETrafficLightState::Yellow:
-            ChangeTick = LightPiece.YellowTick;
+            ChangeTick = LightPiece.YellowTime[LightPiece.YellowIndex];
             break;
         case ETrafficLightState::Green:
-            ChangeTick = LightPiece.GreenTick;
+            ChangeTick = LightPiece.GreenTime[LightPiece.GreenIndex];
             break;
         default:
             UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
@@ -62,12 +172,83 @@ void AAmericanLight::SwitchAmericanLightPiece(FAmericanLightPiece& LightPiece){
             return;
     }
 
-    if(LightPiece.ElapsedTick > ChangeTick){
+    if(LightPiece.ElapsedTime > ChangeTick){
         SwitchAmericanLightState(LightPiece);
-        LightPiece.ElapsedTick = 0.0f;
+        LightPiece.ElapsedTime = 0.0f;
     }
 
 }
+
+void AAmericanLight::SwitchCrossWalkPieceByTickCount(FCrossWalkPiece& CrossWalkPiece){
+    CrossWalkPiece.ElapsedTime = CrossWalkPiece.ElapsedTime + 1;
+    float ChangeTick;
+    switch (CrossWalk.State) {
+        case ECrossWalkState::Red:
+            ChangeTick = CrossWalkPiece.RedTime;
+            break;
+        case ECrossWalkState::White:
+            ChangeTick = CrossWalkPiece.WhiteTime;
+            break;
+        default:
+            UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+            SetCrossWalkLightState(CrossWalkPiece, ECrossWalkState::Red);
+            return;
+    }
+
+
+
+    if(CrossWalk.ElapsedTime > ChangeTick){
+        SwitchCrossWalkLightState(CrossWalk);
+        CrossWalk.ElapsedTime = 0.0f;
+    }
+
+}
+
+void AAmericanLight::SetCrossWalkLightState(FCrossWalkPiece& CrossWalkPiece, const ECrossWalkState InState){
+    FString NextState = UEnum::GetValueAsString(InState);
+    FString CurrentState = UEnum::GetValueAsString(CrossWalkPiece.State);
+    UE_LOG(LogTemp, Error, TEXT("CrossWalk -> Tick: %f; Current State: %s; Next State: %s"),CrossWalkPiece.ElapsedTime, *CurrentState, *NextState);
+
+    CrossWalkPiece.State = InState;
+
+    // OnCrossWalkLightStateChange
+    switch(CrossWalkPiece.State)
+    {
+        case ECrossWalkState::Red:
+            if(CrossWalkPiece.CrossWalkMaterial){
+                CrossWalkPiece.CrossWalkMaterial->SetScalarParameterValue("Emissive_White", 0);
+                CrossWalkPiece.CrossWalkMaterial->SetScalarParameterValue("Emissive_Red", 1);
+            }
+            break;
+        case ECrossWalkState::White:
+            if(CrossWalkPiece.CrossWalkMaterial){
+                CrossWalkPiece.CrossWalkMaterial->SetScalarParameterValue("Emissive_White", 1);
+                CrossWalkPiece.CrossWalkMaterial->SetScalarParameterValue("Emissive_Red", 0);
+            }
+            break;
+        default:
+            UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+            break;
+    }
+
+}
+
+void AAmericanLight::SwitchCrossWalkLightState(FCrossWalkPiece& CrossWalkPiece){
+    switch (CrossWalkPiece.State)
+    {
+        case ECrossWalkState::Red:
+            SetCrossWalkLightState(CrossWalkPiece, ECrossWalkState::White);
+            break;
+        case ECrossWalkState::White:
+            SetCrossWalkLightState(CrossWalkPiece, ECrossWalkState::Red);
+            break;
+        default:
+            UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+            SetCrossWalkLightState(CrossWalkPiece, ECrossWalkState::Red);
+            break;
+    }
+}
+
 
 void AAmericanLight::SwitchAmericanLightState(FAmericanLightPiece& LightPiece)
 {
@@ -93,7 +274,42 @@ void AAmericanLight::SetAmericanLightState(FAmericanLightPiece& LightPiece, cons
 
     FString NextState = UEnum::GetValueAsString(InState);
     FString CurrentState = UEnum::GetValueAsString(LightPiece.State);
-    UE_LOG(LogTemp, Warning, TEXT("%s -> Tick: %f; Current State: %s; Next State: %s"), *LightPiece.LightPieceDescription,LightPiece.ElapsedTick, *CurrentState, *NextState);
+    UE_LOG(LogTemp, Warning, TEXT("%s -> Tick: %f; Current State: %s; Next State: %s"), *LightPiece.LightPieceDescription,LightPiece.ElapsedTime, *CurrentState, *NextState);
+
+    // Switch light index to next stage so that traffic light switch time is different for each loop
+    switch (LightPiece.State)
+    {
+        case ETrafficLightState::Red:
+            if(LightPiece.RedTime.Num() > 1){
+                if(LightPiece.RedIndex == LightPiece.RedTime.Num() - 1){
+                    LightPiece.RedIndex = 0;
+                }else{
+                    LightPiece.RedIndex += 1;
+                }
+            }
+            break;
+        case ETrafficLightState::Yellow:
+            if(LightPiece.YellowTime.Num() > 1){
+                if(LightPiece.YellowIndex == LightPiece.YellowTime.Num() - 1){
+                    LightPiece.YellowIndex = 0;
+                }else{
+                    LightPiece.YellowIndex += 1;
+                }
+            }
+            break;
+        case ETrafficLightState::Green:
+            if(LightPiece.GreenTime.Num() > 1){
+                if(LightPiece.GreenIndex == LightPiece.GreenTime.Num() - 1){
+                    LightPiece.GreenIndex = 0;
+                }else{
+                    LightPiece.GreenIndex += 1;
+                }
+            }
+            break;
+        default:
+            UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+            break;
+    }
 
     LightPiece.State = InState;
     OnAmericanLightStateChanged(LightPiece);
@@ -128,6 +344,7 @@ void AAmericanLight::OnAmericanLightStateChanged(FAmericanLightPiece& LightPiece
 void AAmericanLight::SetLightsMaterialOnAndOff(TArray<UMaterialInstanceDynamic*>& LightsMaterial,float Value){
     for(int i = 0; i < LightsMaterial.Num(); i++){
         if( LightsMaterial[i]){
+            // float OutValue;
             // LightsMaterial[i]->GetScalarParameterValue(FName(TEXT("On/Off")),OutValue);
             LightsMaterial[i]->SetScalarParameterValue("On/Off",Value);
         }
@@ -171,6 +388,26 @@ void AAmericanLight::SetLightMaterial(UMaterialInstanceDynamic* CurrentMaterial,
     }
 
 }
+
+void AAmericanLight::SetCrossWalkMaterial(UMaterialInstanceDynamic* CurrentMaterial){
+    CrossWalk.CrossWalkMaterial = CurrentMaterial;
+}
+
+void AAmericanLight::AmericanLightInitialization(){
+    SetAmericanLightState(LeftLightPiece,ETrafficLightState::Red);
+    SetAmericanLightState(CenterLightPiece,ETrafficLightState::Red);
+    SetAmericanLightState(RightLightPiece,ETrafficLightState::Red);
+    LeftLightPiece.RedTime={330.0, 240.0};
+    LeftLightPiece.GreenTime = {300.0};
+    LeftLightPiece.YellowTime = {30.0};
+
+
+    RightLightPiece.RedTime = CenterLightPiece.RedTime = {330.0};
+    RightLightPiece.GreenTime = CenterLightPiece.GreenTime = {210.0};
+    RightLightPiece.YellowTime = CenterLightPiece.YellowTime = {30.0};
+    UE_LOG(LogTemp, Error, TEXT("AmericanLightInitialization"));
+}
+
 
 // NOT USE
 void AAmericanLight::ConstructorScript(){

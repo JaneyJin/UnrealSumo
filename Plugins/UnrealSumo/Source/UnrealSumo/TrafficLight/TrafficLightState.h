@@ -11,3 +11,10 @@ enum class ETrafficLightState : uint8{
     Green   UMETA(DisplayName = "Green")
    //Off     UMETA(DisplayName = "Off")
 };
+
+UENUM(BlueprintType)
+enum class ECrossWalkState : uint8{
+    Red     UMETA(DisplayName = "Red"),
+    White   UMETA(DisplayName = "White")
+    //Off     UMETA(DisplayName = "Off")
+};

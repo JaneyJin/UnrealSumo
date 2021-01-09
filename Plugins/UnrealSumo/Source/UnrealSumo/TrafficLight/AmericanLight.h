@@ -8,6 +8,9 @@
 #include "Engine/Texture2D.h"   // TODO: DELETE
 #include "AmericanLight.generated.h"
 
+
+class USumoGameInstance;
+
 USTRUCT(BlueprintType, Category = "AmericanLights")
 struct FTrafficLightPieces
 {
@@ -81,37 +84,81 @@ struct FAmericanLightPiece
 
 public:
     UPROPERTY(Category = "American Light", EditAnywhere)
-    double GreenTick = 10.0f;
-    UPROPERTY(Category = "American Light", EditAnywhere)
-    double YellowTick = 2.0f;
-    UPROPERTY(Category = "American Light", EditAnywhere)
-    double RedTick = 7.0f;
+    FString LightPieceDescription;
 
-    double ElapsedTick = 0.f;
+    UPROPERTY(Category = "American Light", EditAnywhere)
+    TArray<double> GreenTime = {10.0f};
+    UPROPERTY(Category = "American Light", EditAnywhere)
+    TArray<double> YellowTime = {2.0f};
+    UPROPERTY(Category = "American Light", EditAnywhere)
+    TArray<double> RedTime = {7.0f};
+
+    int32 GreenIndex = 0;
+    int32 YellowIndex = 0;
+    int32 RedIndex = 0;
+
+    double ElapsedTime = 0.f;
 
     UPROPERTY(Category = "American Light", EditAnywhere)
     ETrafficLightState State = ETrafficLightState::Red;
 
+    UPROPERTY(Category = "American Light", BlueprintReadOnly)
     TArray<UMaterialInstanceDynamic*> RedLightsMaterial;
+
+    UPROPERTY(Category = "American Light", BlueprintReadOnly)
     TArray<UMaterialInstanceDynamic*> YellowLightsMaterial;
+
+    UPROPERTY(Category = "American Light", BlueprintReadOnly)
     TArray<UMaterialInstanceDynamic*> GreenLightsMaterial;
 
 };
 
 
+
+
+USTRUCT(blueprintable, Category = "AmericanLights")
+struct FCrossWalkPiece
+{
+    GENERATED_BODY()
+
+public:
+    UPROPERTY(Category = "American Light", EditAnywhere)
+    bool ContainsCrossWalk = false;
+
+    UPROPERTY(Category = "American Light", EditAnywhere)
+    double WhiteTime = 12.0f;
+
+    UPROPERTY(Category = "American Light", EditAnywhere)
+    double RedTime = 7.0f;
+
+    double ElapsedTime = 0.f;
+
+    UPROPERTY(Category = "American Light", EditAnywhere)
+    ECrossWalkState State = ECrossWalkState::Red;
+
+    UPROPERTY(Category = "American Light", BlueprintReadOnly)
+    UMaterialInstanceDynamic* CrossWalkMaterial;
+};
+
 UCLASS()
-class UNREALSUMO_API AAmericanLight : public ATrafficLightBase
+class UNREALSUMO_API AAmericanLight : public ATrafficSignBase
 {
 	GENERATED_BODY()
 
 private:
-    // DELETE IT LATER
-    int32 count = 0;
+    bool SynBySUMO = true;
 
-    void SwitchAmericanLightPiece(FAmericanLightPiece& LightPieceTick);
+	void SwitchAmericanLightPieceByMachineTime(float DeltaSeconds, FAmericanLightPiece& LightPiece);
+
+    void SwitchAmericanLightPieceByTickCount(FAmericanLightPiece& LightPieceTick);
 
 public:
+
+    // Shared custom GameInstance class. Variables in SumoGameInstance are modified in SumoGameMode.
+    USumoGameInstance* SumoGameInstance;
+
     virtual void BeginPlay() override;
+
 
     virtual void Tick(float DeltaSeconds) override;
 
@@ -120,16 +167,23 @@ public:
     UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AmericanLightsDetails")
     TArray<FTrafficLightStruct> Heads;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AmericanLightsDetails")
+    UPROPERTY(EditAnywhere, Category = "AmericanLightsDetails")
     FAmericanLightPiece LeftLightPiece;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AmericanLightsDetails")
+    UPROPERTY(EditAnywhere, Category = "AmericanLightsDetails")
     FAmericanLightPiece CenterLightPiece;
 
-    UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AmericanLightsDetails")
+    UPROPERTY(EditAnywhere, Category = "AmericanLightsDetails")
     FAmericanLightPiece RightLightPiece;
 
+    UPROPERTY( EditAnywhere, Category = "AmericanLightsDetails")
+    FCrossWalkPiece CrossWalk;
+
+
     void SetAmericanLightState(FAmericanLightPiece& LightPieceTick, const ETrafficLightState InState);
+
+
+    void SetCrossWalkLightState(FCrossWalkPiece& CrossWalkPiece, const ECrossWalkState InState);
 
     void TickByCount();
 
@@ -142,10 +196,23 @@ public:
     UFUNCTION(Category = "American Light", BlueprintCallable)
     void SetLightMaterial(UMaterialInstanceDynamic* CurrentMaterial, ETrafficLightState InState, FString LightDescription);
 
+    UFUNCTION(Category = "American Light", BlueprintCallable)
+    void SetCrossWalkMaterial(UMaterialInstanceDynamic* CurrentMaterial);
+
+    void AmericanLightInitialization();
+
 private:
+    void SwitchCrossWalkPieceByMachineTime(FCrossWalkPiece& CrossWalkPiece, float DeltaSeconds);
+
+    void SwitchCrossWalkPieceByTickCount(FCrossWalkPiece& CrossWalkPiece);
+
+    void SwitchCrossWalkLightState(FCrossWalkPiece& CrossWalk);
+
     void SetLightsMaterialOnAndOff(TArray<UMaterialInstanceDynamic*>& LightsMaterial,float Value);
 
     bool MaterialIsNotValid(FAmericanLightPiece LightPiece);
 
     void ConstructorScript();
+
+    void TickByMachineTime(float DeltaSeconds);
 };

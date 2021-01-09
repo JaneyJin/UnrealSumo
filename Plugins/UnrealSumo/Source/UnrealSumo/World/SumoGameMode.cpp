@@ -49,22 +49,6 @@ void ASumoGameMode::BeginPlay() {
         // Validate FPS between Unreal and SUMO.
         MatchFrameRatePerSecond();
 
-        /* APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0) //for singleplayer
-        ASumoPlayerController* PlayerController = (ASumoPlayerController*)GetWorld()->GetFirstPlayerController();
-        check(PlayerController);
-        UE_LOG(LogTemp, Error, TEXT("%s.\n"), *PlayerController->GetName())
-        PlayerController->Possess(EgoWheeledVehicle);
-        AController* Player;
-        for (FConstPlayerControllerIterator Iterator = GetWorld()->GetPlayerControllerIterator(); Iterator; ++Iterator)
-        {
-            APlayerController* PlayerController = *Iterator;
-            PlayerController->Possess(EgoWheeledVehicle);
-            if (Player != PlayerController && PlayerController->GetPawn())
-            {
-                // MinPlayerDistance = FMath::Min(MinPlayerDistance, (SpawnLocation - PlayerController->GetPawn()->GetActorLocation()).Size());
-            }
-        }*/
-
     }
     catch (tcpip::SocketException& e) {
         TrafficLightSyn = ETrafficLightController::UnrealTrafficLight;

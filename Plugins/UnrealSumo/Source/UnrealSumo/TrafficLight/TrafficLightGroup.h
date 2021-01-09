@@ -9,6 +9,7 @@
 
 class ATrafficLightBase;
 class USumoGameInstance;
+class ATrafficSignBase;
 
 UCLASS()
 class UNREALSUMO_API ATrafficLightGroup : public AActor
@@ -27,17 +28,18 @@ public:
 	// virtual void Tick(float DeltaTime) override;
 
     UPROPERTY(EditAnywhere, Category = "Traffic Light", meta = (ToolTip = ""))
-    TArray<ATrafficLightBase*> TrafficLightReference;
+    TArray<ATrafficSignBase*> TrafficLightReference;
 
     UPROPERTY(EditAnywhere, Category = "Traffic Light", meta = (ToolTip = ""))
     FString JunctionID;
-
+		
 private:
     char ExtractLightState(std::string TL_State, int TL_Group);
 
+    std::vector<int> GetLaneNumsforGroup(std::string ControlledLanesID);
+
     // Shared custom GameInstance class. Variables in SumoGameInstance are modified in SumoGameMode.
     USumoGameInstance* SumoGameInstance;
-
 
     void ValidateJunctionID(FString ID);
 };
