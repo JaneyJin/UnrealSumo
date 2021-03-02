@@ -11,7 +11,7 @@ AAmericanLight::AAmericanLight(const FObjectInitializer &ObjectInitializer)
 {
     PrimaryActorTick.bCanEverTick = true;
     LeftLightPiece.LightPieceDescription = "LeftPiece";
-    CenterLightPiece.LightPieceDescription = "CenterPiece";
+    StraightLightPiece.LightPieceDescription = "StraightPiece";
     RightLightPiece.LightPieceDescription = "RightPiece";
 }
 
@@ -19,7 +19,7 @@ AAmericanLight::AAmericanLight(const FObjectInitializer &ObjectInitializer)
 void AAmericanLight::BeginPlay() {
     Super::BeginPlay();
 
-    if(MaterialIsNotValid(LeftLightPiece) && MaterialIsNotValid(CenterLightPiece) && MaterialIsNotValid(RightLightPiece)){
+    if(MaterialIsNotValid(LeftLightPiece) && MaterialIsNotValid(StraightLightPiece) && MaterialIsNotValid(RightLightPiece)){
         UE_LOG(LogTemp, Error, TEXT("Failed to load light materials"))
     }
 
@@ -77,7 +77,7 @@ void AAmericanLight::Tick(float DeltaSeconds)
 
 void AAmericanLight::TickByMachineTime(float DeltaSeconds) {
     SwitchAmericanLightPieceByMachineTime(DeltaSeconds, LeftLightPiece);
-    SwitchAmericanLightPieceByMachineTime(DeltaSeconds, CenterLightPiece);
+    SwitchAmericanLightPieceByMachineTime(DeltaSeconds, StraightLightPiece);
     SwitchAmericanLightPieceByMachineTime(DeltaSeconds, RightLightPiece);
 
     if(CrossWalk.ContainsCrossWalk){
@@ -119,7 +119,7 @@ void AAmericanLight::SwitchAmericanLightPieceByMachineTime(float DeltaSeconds, F
 void AAmericanLight::TickByCount(){
 
     SwitchAmericanLightPieceByTickCount(LeftLightPiece);
-    SwitchAmericanLightPieceByTickCount(CenterLightPiece);
+    SwitchAmericanLightPieceByTickCount(StraightLightPiece);
     SwitchAmericanLightPieceByTickCount(RightLightPiece);
 
     if(CrossWalk.ContainsCrossWalk){
@@ -358,8 +358,8 @@ void AAmericanLight::SetLightMaterial(UMaterialInstanceDynamic* CurrentMaterial,
         case ETrafficLightState::Red:
             if(LightDescription.Contains("Left")){
                 LeftLightPiece.RedLightsMaterial.Add(CurrentMaterial);
-            }else if(LightDescription.Contains("Center")){
-                CenterLightPiece.RedLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Straight")){
+                StraightLightPiece.RedLightsMaterial.Add(CurrentMaterial);
             }else if(LightDescription.Contains("Right")){
                 RightLightPiece.RedLightsMaterial.Add(CurrentMaterial);
             }
@@ -367,8 +367,8 @@ void AAmericanLight::SetLightMaterial(UMaterialInstanceDynamic* CurrentMaterial,
         case ETrafficLightState::Yellow:
             if(LightDescription.Contains("Left")){
                 LeftLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
-            }else if(LightDescription.Contains("Center")){
-                CenterLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Straight")){
+                StraightLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
             }else if(LightDescription.Contains("Right")){
                 RightLightPiece.YellowLightsMaterial.Add(CurrentMaterial);
             }
@@ -376,8 +376,8 @@ void AAmericanLight::SetLightMaterial(UMaterialInstanceDynamic* CurrentMaterial,
         case ETrafficLightState::Green:
             if(LightDescription.Contains("Left")){
                 LeftLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
-            }else if(LightDescription.Contains("Center")){
-                CenterLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
+            }else if(LightDescription.Contains("Straight")){
+                StraightLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
             }else if(LightDescription.Contains("Right")){
                 RightLightPiece.GreenLightsMaterial.Add(CurrentMaterial);
             }
@@ -393,21 +393,70 @@ void AAmericanLight::SetCrossWalkMaterial(UMaterialInstanceDynamic* CurrentMater
     CrossWalk.CrossWalkMaterial = CurrentMaterial;
 }
 
-void AAmericanLight::AmericanLightInitialization(){
-    SetAmericanLightState(LeftLightPiece,ETrafficLightState::Red);
-    SetAmericanLightState(CenterLightPiece,ETrafficLightState::Red);
-    SetAmericanLightState(RightLightPiece,ETrafficLightState::Red);
-    LeftLightPiece.RedTime={330.0, 240.0};
-    LeftLightPiece.GreenTime = {300.0};
-    LeftLightPiece.YellowTime = {30.0};
+void AAmericanLight::AmericanLightInitialization(std::vector<FSubGroup> LightTime){
+
+      LeftLightPiece.RedTime = RightLightPiece.RedTime = StraightLightPiece.RedTime = {};
+      LeftLightPiece.GreenTime = RightLightPiece.GreenTime = StraightLightPiece.GreenTime = {};
+      LeftLightPiece.YellowTime = RightLightPiece.YellowTime = StraightLightPiece.YellowTime = {};
 
 
-    RightLightPiece.RedTime = CenterLightPiece.RedTime = {330.0};
-    RightLightPiece.GreenTime = CenterLightPiece.GreenTime = {210.0};
-    RightLightPiece.YellowTime = CenterLightPiece.YellowTime = {30.0};
-    UE_LOG(LogTemp, Error, TEXT("AmericanLightInitialization"));
+      for(FSubGroup g : LightTime){
+
+        switch (g.SubGroup)
+        {
+            case 'l':
+                SetSubGroupInitialState(LeftLightPiece, g.InitialState);
+
+                ConvertVectorToTArray(LeftLightPiece.RedTime, g.RedTime);
+                ConvertVectorToTArray(LeftLightPiece.YellowTime, g.YellowTime);
+                ConvertVectorToTArray(LeftLightPiece.GreenTime, g.GreenTime);
+                break;
+            case 's':
+                SetSubGroupInitialState(StraightLightPiece, g.InitialState);
+                ConvertVectorToTArray(StraightLightPiece.RedTime, g.RedTime);
+                ConvertVectorToTArray(StraightLightPiece.YellowTime, g.YellowTime);
+                ConvertVectorToTArray(StraightLightPiece.GreenTime, g.GreenTime);
+                break;
+            case 'r':
+                SetSubGroupInitialState(LeftLightPiece, g.InitialState);
+
+                ConvertVectorToTArray(RightLightPiece.RedTime, g.RedTime);
+                ConvertVectorToTArray(RightLightPiece.YellowTime, g.YellowTime);
+                ConvertVectorToTArray(RightLightPiece.GreenTime, g.GreenTime);
+                break;
+            default:
+                UE_LOG(LogTemp, Error, TEXT("Invalid traffic light group!"));
+                return;
+        }
+
+      }
 }
 
+void AAmericanLight::SetSubGroupInitialState(FAmericanLightPiece LightPiece, char InitialState){
+  switch (InitialState)
+  {
+      case 'r':
+          SetAmericanLightState(LightPiece,ETrafficLightState::Red);
+          break;
+      case 'y':
+          SetAmericanLightState(LightPiece,ETrafficLightState::Yellow);
+          break;
+      case 'g':
+          SetAmericanLightState(LightPiece,ETrafficLightState::Green);
+          break;
+      default:
+          UE_LOG(LogTemp, Error, TEXT("Invalid traffic light state!"));
+          SetAmericanLightState(LightPiece, ETrafficLightState::Red);
+          return;
+  }
+}
+
+void AAmericanLight::ConvertVectorToTArray(TArray<double>& SubGroupLightTime, std::vector<double>& SUMOLightTime) {
+    for (double e: SUMOLightTime)
+    {
+        SubGroupLightTime.Add(e);
+    }
+}
 
 // NOT USE
 void AAmericanLight::ConstructorScript(){
@@ -416,7 +465,7 @@ void AAmericanLight::ConstructorScript(){
 
 
     FTrafficLightStruct TLStruct;
-    TLStruct.Description = "CenterPiece";
+    TLStruct.Description = "StraightPiece";
     TLStruct.Position.SetLocation(FVector(-800,0,640));
     Heads.Add(TLStruct);
 
@@ -473,8 +522,8 @@ void AAmericanLight::ConstructorScript(){
                     NewMaterial->SetVectorParameterValue("LightColor",FLinearColor::Red);
                     if(head.Description.Contains("Left")){
                         LeftLightPiece.RedLightsMaterial.Add(NewMaterial);
-                    }else if(head.Description.Contains("Center")){
-                        CenterLightPiece.RedLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Straight")){
+                        StraightLightPiece.RedLightsMaterial.Add(NewMaterial);
                     }else if(head.Description.Contains("Right")){
                         RightLightPiece.RedLightsMaterial.Add(NewMaterial);
                     }
@@ -483,8 +532,8 @@ void AAmericanLight::ConstructorScript(){
                     NewMaterial->SetVectorParameterValue("LightColor",FLinearColor::Yellow);
                     if(head.Description.Contains("Left")){
                         LeftLightPiece.YellowLightsMaterial.Add(NewMaterial);
-                    }else if(head.Description.Contains("Center")){
-                        CenterLightPiece.YellowLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Straight")){
+                        StraightLightPiece.YellowLightsMaterial.Add(NewMaterial);
                     }else if(head.Description.Contains("Right")){
                         RightLightPiece.YellowLightsMaterial.Add(NewMaterial);
                     }
@@ -493,8 +542,8 @@ void AAmericanLight::ConstructorScript(){
                     NewMaterial->SetVectorParameterValue("LightColor",FLinearColor::Green);
                     if(head.Description.Contains("Left")){
                         LeftLightPiece.GreenLightsMaterial.Add(NewMaterial);
-                    }else if(head.Description.Contains("Center")){
-                        CenterLightPiece.GreenLightsMaterial.Add(NewMaterial);
+                    }else if(head.Description.Contains("Straight")){
+                        StraightLightPiece.GreenLightsMaterial.Add(NewMaterial);
                     }else if(head.Description.Contains("Right")){
                         RightLightPiece.GreenLightsMaterial.Add(NewMaterial);
                     }

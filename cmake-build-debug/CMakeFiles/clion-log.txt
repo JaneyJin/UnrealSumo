@@ -1,0 +1,4 @@
+/opt/clion-2020.3.1/bin/cmake/linux/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" "/home/janeyjin/Documents/Unreal Projects/UnrealSumo"
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /home/janeyjin/Documents/Unreal Projects/UnrealSumo/cmake-build-debug

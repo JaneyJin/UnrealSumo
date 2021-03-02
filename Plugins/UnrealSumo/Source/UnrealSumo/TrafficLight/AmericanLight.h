@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "TrafficLightBase.h"
+#include "TrafficLightSubGroup.h"
 #include "Engine/StaticMesh.h"  // TODO: DELETE
 #include "Engine/Texture2D.h"   // TODO: DELETE
 #include "AmericanLight.generated.h"
@@ -171,7 +172,7 @@ public:
     FAmericanLightPiece LeftLightPiece;
 
     UPROPERTY(EditAnywhere, Category = "AmericanLightsDetails")
-    FAmericanLightPiece CenterLightPiece;
+    FAmericanLightPiece StraightLightPiece;
 
     UPROPERTY(EditAnywhere, Category = "AmericanLightsDetails")
     FAmericanLightPiece RightLightPiece;
@@ -199,7 +200,7 @@ public:
     UFUNCTION(Category = "American Light", BlueprintCallable)
     void SetCrossWalkMaterial(UMaterialInstanceDynamic* CurrentMaterial);
 
-    void AmericanLightInitialization();
+    void AmericanLightInitialization(std::vector<FSubGroup> LightTime);
 
 private:
     void SwitchCrossWalkPieceByMachineTime(FCrossWalkPiece& CrossWalkPiece, float DeltaSeconds);
@@ -215,4 +216,8 @@ private:
     void ConstructorScript();
 
     void TickByMachineTime(float DeltaSeconds);
+
+    void SetSubGroupInitialState(FAmericanLightPiece LightPiece, char InitialState);
+
+    void ConvertVectorToTArray(TArray<double>& SubGroupLightTime, std::vector<double>& SUMOLightTime);
 };
